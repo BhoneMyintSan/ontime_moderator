@@ -1,9 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   experimental: {
-    css: {
-      tailwind: true
-    }
+    // (leave empty or add valid experimental options here)
   }
 };
 
