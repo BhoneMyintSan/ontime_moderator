@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { SignOutButton } from "@clerk/nextjs";
 
 export default function Settings() {
   const [notify, setNotify] = useState(true);
@@ -9,6 +11,7 @@ export default function Settings() {
   const [lastName, setLastName] = useState("Morrison");
   const [email, setEmail] = useState("Jhon.morri@gmail.com");
   const [bio, setBio] = useState("");
+  const router = useRouter();
 
   return (
     <div className="max-w-6xl mx-auto mt-10 px-2 sm:px-4">
@@ -118,6 +121,14 @@ export default function Settings() {
               <option>Eastern Time (ET)</option>
               <option>Central European Time (CET)</option>
             </select>
+          </div>
+          <div className="mt-8 flex justify-end">
+            <SignOutButton signOutCallback={() => router.push("/login")}>
+              {/* Only pass props to SignOutButton, not button */}
+              <button type="button" className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base">
+                Logout
+              </button>
+            </SignOutButton>
           </div>
         </div>
       </div>
