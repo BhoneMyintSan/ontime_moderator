@@ -7,7 +7,7 @@ export default function CreateVolunteership() {
   return (
     <div className="max-w-4xl mx-auto mt-10 px-2 sm:px-4">
       <div className="bg-[#23233a] rounded-2xl p-4 sm:p-10 shadow">
-        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-8">Create New Volunteer Ship Activity</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-8">Create New Volunteer Activity</h1>
         <form className="space-y-6">
           <div>
             <label className="block text-[#b3b3c6] font-semibold mb-2">Activity Title</label>
@@ -44,6 +44,7 @@ export default function CreateVolunteership() {
           <div>
             <label className="block text-[#b3b3c6] font-semibold mb-2">Role Description</label>
             <textarea
+              name="description"
               placeholder="Describe the volunteer role"
               className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg min-h-[80px] max-h-[200px] focus:outline-none"
             ></textarea>
@@ -51,9 +52,46 @@ export default function CreateVolunteership() {
           <div>
             <label className="block text-[#b3b3c6] font-semibold mb-2">Items & Expectations</label>
             <textarea
+              name="logistics"
               placeholder="List items to bring and expectations"
               className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg min-h-[64px] max-h-[160px] focus:outline-none"
             ></textarea>
+          </div>
+          <div>
+            <label className="block text-[#b3b3c6] font-semibold mb-2">Organization</label>
+            <input
+              name="organization"
+              type="text"
+              placeholder="Enter organization name"
+              className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[#b3b3c6] font-semibold mb-2">Requirements</label>
+            <input
+              name="requirements"
+              type="text"
+              placeholder="Enter any requirements"
+              className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[#b3b3c6] font-semibold mb-2">Token Reward</label>
+            <input
+              name="tokenReward"
+              type="number"
+              placeholder="Enter token reward amount"
+              className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="block text-[#b3b3c6] font-semibold mb-2">Contact Information</label>
+            <input
+              name="contact"
+              type="text"
+              placeholder="Enter contact information"
+              className="w-full bg-[#18182c] text-white px-4 py-3 rounded-lg focus:outline-none"
+            />
           </div>
           <div className="flex justify-end gap-4 mt-8">
             <button

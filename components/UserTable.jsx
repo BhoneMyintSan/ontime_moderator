@@ -1,5 +1,8 @@
+import Link from 'next/link';
+
 const users = [
   {
+    id: 1,
     username: 'alice_brown',
     email: 'alice_b@gmail.com',
     phone: '(+66)12345678',
@@ -9,6 +12,7 @@ const users = [
     avatar: 'https://i.pravatar.cc/40?img=1'
   },
   {
+    id: 2,
     username: 'john_doe',
     email: 'john_d@gmail.com',
     phone: '(+66)87654321',
@@ -18,6 +22,7 @@ const users = [
     avatar: 'https://i.pravatar.cc/40?img=2'
   },
   {
+    id: 3,
     username: 'emily_white',
     email: 'emily_w@gmail.com',
     phone: '(+66)54321876',
@@ -56,7 +61,11 @@ const UserTable = () => {
 
                 <img src={user.avatar} className="rounded-full w-10 h-10" alt="avatar" />
                 <div>
-                  <div className="font-semibold text-white">{user.username}</div>
+                  <div className="font-semibold text-white">
+                    <Link href={`/dashboard/users/${user.id}`}>
+                      <div className="user-card">{user.username}</div>
+                    </Link>
+                  </div>
                   <div className="text-xs text-gray-400">Member since {user.joined}</div>
                 </div>
               </td>

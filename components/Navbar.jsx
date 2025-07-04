@@ -1,12 +1,19 @@
 "use client";
 import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 const Navbar = () => {
   const router = useRouter();
+  const [profileImg, setProfileImg] = useState("");
+
+  // Try to load the profile image from localStorage (if you save it there in your settings page)
+  useEffect(() => {
+    const img = window.localStorage.getItem("profileImg") || "";
+    setProfileImg(img);
+  }, []);
 
   return (
-
     <div className="w-full flex flex-row items-center justify-end gap-2 sm:gap-0 mb-6 relative">
       <div className="flex items-center gap-3 ml-2 flex-shrink-0">
         <div className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg">
@@ -19,13 +26,21 @@ const Navbar = () => {
             className="bg-[#252540] text-white pl-10 pr-4 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
           />
         </div>
-        <img
-          src="https://i.pravatar.cc/40"
-          alt="profile"
-          className="rounded-full w-10 h-10 border-2 border-blue-600 cursor-pointer"
-
+        <div
+          className="rounded-full w-10 h-10 border-2 border-blue-600 cursor-pointer flex items-center justify-center bg-[#18182c]"
           onClick={() => router.push("/dashboard/settings")}
-        />
+        >
+          {profileImg ? (
+            <img
+              src={profileImg}
+              alt="profile"
+              className="rounded-full w-10 h-10 object-cover"
+            />
+          ) : (
+            // Center the plus sign and make it visually balanced
+            <span className="text-[#444] text-3xl leading-none pb-1">+</span>
+          )}
+        </div>
       </div>
     </div>
   );

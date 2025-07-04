@@ -2,26 +2,37 @@
 import { useState } from "react";
 import TicketTable from '../../../components/TicketTable';
 
-const tickets = [
+const initialTickets = [
   { id: "TCK-001", service: "SVD-201", by: "alice_brown", against: "jhon_doe", date: "28 Jan, 10:30 AM", status: "Resolved" },
   { id: "TCK-002", service: "SVD-202", by: "jhon_doe", against: "mike_w", date: "28 Jan, 10:30 AM", status: "Unresolved" },
   { id: "TCK-003", service: "SVD-203", by: "emily_white", against: "bruce_lee", date: "28 Jan, 10:30 AM", status: "Unresolved" },
   { id: "TCK-004", service: "SVD-204", by: "michael_smith", against: "emily_white", date: "28 Jan, 10:30 AM", status: "Unresolved" },
 ];
 
-const filterTabs = [
-  { label: "All Ticket", key: "all", count: tickets.length },
-  { label: "Unresolved", key: "Unresolved", count: tickets.filter(t => t.status === "Unresolved").length },
-  { label: "Resolved", key: "Resolved", count: tickets.filter(t => t.status === "Resolved").length },
-];
-
 export default function Tickets() {
+  const [tickets, setTickets] = useState(initialTickets);
   const [activeTab, setActiveTab] = useState("all");
+
+  const filterTabs = [
+    { label: "All Ticket", key: "all", count: tickets.length },
+    { label: "Unresolved", key: "Unresolved", count: tickets.filter(t => t.status === "Unresolved").length },
+    { label: "Resolved", key: "Resolved", count: tickets.filter(t => t.status === "Resolved").length },
+  ];
 
   const filteredTickets =
     activeTab === "all"
       ? tickets
       : tickets.filter((t) => t.status === activeTab);
+
+  const toggleStatus = (id) => {
+    setTickets((prev) =>
+      prev.map((t) =>
+        t.id === id
+          ? { ...t, status: t.status === "Resolved" ? "Unresolved" : "Resolved" }
+          : t
+      )
+    );
+  };
 
   return (
     <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
@@ -44,7 +55,7 @@ export default function Tickets() {
         ))}
       </div>
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <TicketTable tickets={filteredTickets} />
+        <TicketTable tickets={filteredTickets} onToggleStatus={toggleStatus} />
       </div>
     </div>
   );

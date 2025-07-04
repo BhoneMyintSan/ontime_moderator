@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 
@@ -11,7 +11,28 @@ export default function Settings() {
   const [lastName, setLastName] = useState("Morrison");
   const [email, setEmail] = useState("Jhon.morri@gmail.com");
   const [bio, setBio] = useState("");
+  const [profileImg, setProfileImg] = useState("");
+  const fileInputRef = useRef(null);
   const router = useRouter();
+
+  const handlePhotoClick = () => fileInputRef.current.click();
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setProfileImg(ev.target.result);
+        window.localStorage.setItem("profileImg", ev.target.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleRemovePhoto = () => {
+    setProfileImg("");
+    window.localStorage.removeItem("profileImg");
+  };
 
   return (
     <div className="max-w-6xl mx-auto mt-10 px-2 sm:px-4">
@@ -19,19 +40,43 @@ export default function Settings() {
       <p className="text-[#b3b3c6] mb-8">Manage your account and system preferences</p>
       <div className="flex flex-col lg:flex-row gap-8">
 
+        {/* Profile Settings */}
         <div className="flex-1 bg-[#23233a] rounded-2xl p-4 sm:p-8 mb-8 lg:mb-0">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-6">Profile Settings</h2>
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
-            <img
-              src="https://i.pravatar.cc/80"
-              alt="profile"
-              className="rounded-xl w-20 h-20 object-cover"
+            <div className="rounded-full w-20 h-20 bg-[#18182c] flex items-center justify-center overflow-hidden border-2 border-[#444]">
+              {profileImg ? (
+                <img
+                  src={profileImg}
+                  alt="profile"
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[#444] text-5xl select-none flex items-center justify-center w-full h-full" style={{ lineHeight: "1" }}>
+                  +
+                </span>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              ref={fileInputRef}
+              style={{ display: "none" }}
+              onChange={handlePhotoChange}
             />
             <div className="flex gap-3">
-              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base">
+              <button
+                className="bg-[#6366f1] hover:bg-[#4f46e5] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+                onClick={handlePhotoClick}
+                type="button"
+              >
                 Upload New Photo
               </button>
-              <button className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base">
+              <button
+                className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+                onClick={handleRemovePhoto}
+                type="button"
+              >
                 Remove
               </button>
             </div>
@@ -75,12 +120,12 @@ export default function Settings() {
           </div>
         </div>
 
+        {/* Preferences */}
         <div className="w-full lg:w-96 bg-[#23233a] rounded-2xl p-4 sm:p-8 h-fit">
           <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Preferences</h2>
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <span className="font-semibold text-white">Notifications</span>
-  
               <button
                 type="button"
                 onClick={() => setNotify(!notify)}
@@ -124,25 +169,16 @@ export default function Settings() {
           </div>
           <div className="mt-8 flex justify-end">
             <SignOutButton signOutCallback={() => router.push("/login")}>
-              {/* Only pass props to SignOutButton, not button */}
-              <button type="button" className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base">
-                Logout
-              </button>
+              <span>
+                <button
+                  type="button"
+                  className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+                >
+                  Logout
+                </button>
+              </span>
             </SignOutButton>
           </div>
-        </div>
-      </div>
- 
-      <div className="bg-[#23233a] rounded-2xl p-4 sm:p-8 mt-8">
-        <h2 className="text-lg sm:text-xl font-bold text-white mb-2">Danger Zone</h2>
-        <div className="mb-4">
-          <span className="font-semibold text-white">Delete Account</span>
-          <p className="text-[#b3b3c6] text-sm">Permanently delete your account and all data</p>
-        </div>
-        <div className="flex justify-end">
-          <button className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 sm:px-6 py-2 rounded-lg transition text-xs sm:text-base">
-            Delete Account
-          </button>
         </div>
       </div>
     </div>
