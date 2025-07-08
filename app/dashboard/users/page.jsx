@@ -1,5 +1,5 @@
 "use client";
-import UserTable from '../../../components/UserTable';
+import UserTable from '../../../components/tables/UserTable';
 
 export default function Users() {
   return (

@@ -2,12 +2,14 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useReportStore } from "../../../../store/reportStore";
+import { useState } from 'react';
 
 export default function ReportDetail() {
   const { id } = useParams();
   const router = useRouter();
   const { reports, toggleStatus } = useReportStore();
   const report = reports.find(r => r.id === id);
+  const [serviceStopped, setServiceStopped] = useState(false);
 
   if (!report) return <div className="text-white p-8">Report not found.</div>;
 
@@ -51,8 +53,15 @@ export default function ReportDetail() {
               <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-2 rounded-lg text-white font-semibold shadow transition">
                 Moderate User
               </button>
-              <button className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-lg text-white font-semibold shadow transition">
-                Stop Service
+              <button
+                className={`px-6 py-2 rounded-lg font-semibold shadow transition ${
+                  serviceStopped
+                    ? "bg-yellow-500 hover:bg-yellow-600 text-black"
+                    : "bg-red-500 hover:bg-red-600 text-white"
+                }`}
+                onClick={() => setServiceStopped(!serviceStopped)}
+              >
+                {serviceStopped ? "Undo Stop Service" : "Stop Service"}
               </button>
             </div>
             <button
@@ -62,6 +71,11 @@ export default function ReportDetail() {
               Done
             </button>
           </div>
+          {serviceStopped && (
+            <div className="mt-4 text-green-400 font-semibold text-center">
+              Service has been stopped for this user.
+            </div>
+          )}
         </div>
       </div>
     </div>

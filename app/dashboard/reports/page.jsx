@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useReportStore } from "../../../store/reportStore";
-import ReportTable from '../../../components/ReportTable';
+import ReportTable from '../../../components/tables/ReportTable';
 
 export default function Reports() {
   const { reports, toggleStatus } = useReportStore();

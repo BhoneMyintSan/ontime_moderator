@@ -3,36 +3,14 @@
 import { useParams, useRouter } from 'next/navigation';
 import { FiDownload } from 'react-icons/fi';
 import { useState } from 'react';
-
-// This should be imported or fetched from a shared source, not duplicated!
-const initialVolunteers = [
-  {
-    id: "1",
-    title: "Community Clean-Up",
-    status: "Open",
-    dateRange: "May 15, 2024",
-    organization: "Green Earth Org",
-    description: "Help clean up the park and make our community greener.",
-    logistics: "Meet at the main gate at 8am. Tools provided.",
-    requirements: "Must be 16+. Bring water and wear comfortable clothes.",
-    tokenReward: 10,
-    contact: "contact@greenearth.org",
-    applicants: [
-      { name: "Anna Brown", email: "anna.b@email.com", showUp: true },
-      { name: "James Smith", email: "james.s@email.com", showUp: true },
-      { name: "Emily Johnson", email: "emily.j@email.com", showUp: true }
-    ],
-    maxParticipants: 5
-  },
-  // ...other volunteerships
-];
+import mockVolunteerships from '../../../../data/mockVolunteerships';
 
 export default function VolunteershipDetail() {
   const { id } = useParams();
   const router = useRouter();
 
   // Find the correct volunteership by id
-  const volunteershipData = initialVolunteers.find(v => v.id === id) || initialVolunteers[0];
+  const volunteershipData = mockVolunteerships.find(v => v.id === id) || mockVolunteerships[0];
 
   // State
   const [applicants, setApplicants] = useState(volunteershipData.applicants);
@@ -72,12 +50,7 @@ export default function VolunteershipDetail() {
   };
 
   const saveInfo = () => {
-    volunteershipData.organization = editInfo.organization;
-    volunteershipData.description = editInfo.description;
-    volunteershipData.logistics = editInfo.logistics;
-    volunteershipData.requirements = editInfo.requirements;
-    volunteershipData.tokenReward = editInfo.tokenReward;
-    volunteershipData.contact = editInfo.contact;
+    // In a real app, update the backend here
     setEditMode(false);
   };
 

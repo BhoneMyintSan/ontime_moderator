@@ -26,21 +26,22 @@ const Navbar = () => {
             className="bg-[#252540] text-white pl-10 pr-4 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
           />
         </div>
-        <div
-          className="rounded-full w-10 h-10 border-2 border-blue-600 cursor-pointer flex items-center justify-center bg-[#18182c]"
-          onClick={() => router.push("/dashboard/settings")}
-        >
-          {profileImg ? (
-            <img
-              src={profileImg}
-              alt="profile"
-              className="rounded-full w-10 h-10 object-cover"
-            />
-          ) : (
-            // Center the plus sign and make it visually balanced
-            <span className="text-[#444] text-3xl leading-none pb-1">+</span>
-          )}
-        </div>
+        {/* Profile image */}
+      <div
+        className="ml-4 w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer overflow-hidden bg-[#18182c] flex items-center justify-center hover:ring-2 hover:ring-purple-500 transition"
+        onClick={() => router.push("/dashboard/settings")}
+        title="Open settings"
+      >
+        {profileImg ? (
+          <img
+            src={profileImg}
+            alt="profile"
+            className="object-cover w-full h-full rounded-full"
+          />
+        ) : (
+          <span className="text-[#555] text-lg font-bold select-none">M</span>
+        )}
+      </div>
       </div>
     </div>
   );

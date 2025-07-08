@@ -2,48 +2,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import VolunteerCard from "../../../components/VolunteerCard";
-
-const initialVolunteers = [
-	{
-		id: "1",
-		title: "Community Clean-Up",
-		status: "Open",
-		dateRange: "May 15, 2024",
-		applicants: [
-			{ name: "Anna Brown", email: "anna.b@email.com", showUp: true },
-			{ name: "James Smith", email: "james.s@email.com", showUp: true },
-			{ name: "Emily Johnson", email: "emily.j@email.com", showUp: true }
-		],
-		maxParticipants: 5
-	},
-	{
-		id: "2",
-		title: "Tutoring Program",
-		status: "Open",
-		dateRange: "Jun 1 - Jul 15, 2024",
-		applicants: [
-			{ name: "Michael Brown", email: "michael.b@email.com", showUp: true },
-			{ name: "Jessica Davis", email: "jessica.d@email.com", showUp: true }
-		],
-		maxParticipants: 3
-	},
-	{
-		id: "3",
-		title: "Animal Shelter Helper",
-		status: "Closed",
-		dateRange: "Jul 1 - Aug 30, 2024",
-		applicants: [
-			{ name: "William Wilson", email: "william.w@email.com", showUp: true },
-			{ name: "Sophia Miller", email: "sophia.m@email.com", showUp: true },
-			{ name: "Olivia Moore", email: "olivia.m@email.com", showUp: true }
-		],
-		maxParticipants: 4
-	}
-];
+import VolunteerCard from "../../../components/cards/VolunteerCard";
+import mockVolunteerships from "../../../data/mockVolunteerships";
 
 export default function VolunteershipsPage() {
-	const [volunteers, setVolunteers] = useState(initialVolunteers);
+	const [volunteers, setVolunteers] = useState(mockVolunteerships);
 	const router = useRouter();
 
 	const handleViewDetails = (id) => {

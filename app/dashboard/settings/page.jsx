@@ -168,15 +168,13 @@ export default function Settings() {
             </select>
           </div>
           <div className="mt-8 flex justify-end">
-            <SignOutButton signOutCallback={() => router.push("/login")}>
-              <span>
-                <button
-                  type="button"
-                  className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
-                >
-                  Logout
-                </button>
-              </span>
+            <SignOutButton redirectUrl="/login">
+              <button
+                type="button"
+                className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+              >
+                Logout
+              </button>
             </SignOutButton>
           </div>
         </div>
