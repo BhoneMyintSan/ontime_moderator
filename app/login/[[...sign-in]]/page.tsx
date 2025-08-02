@@ -23,6 +23,7 @@ export default function Login() {
               colorPrimary: "#6366f1",
               colorBackground: "#23233a",
               colorInputBackground: "#18182c",
+              colorInputText: "#e6e6f0",
               colorText: "#e6e6f0",
               colorTextSecondary: "#b3b3c6",
               borderRadius: "1rem",

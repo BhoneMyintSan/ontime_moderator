@@ -1,4 +1,20 @@
-const TicketTable = ({ tickets, onToggleStatus }) => (
+import React from "react";
+
+interface Ticket {
+  id: string;
+  service: string;
+  by: string;
+  against: string;
+  date: string;
+  status: string;
+}
+
+interface TicketTableProps {
+  tickets: Ticket[];
+  onToggleStatus: (id: string) => void;
+}
+
+const TicketTable: React.FC<TicketTableProps> = ({ tickets, onToggleStatus }) => (
   <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
     <table className="min-w-[600px] w-full table-fixed">
       <colgroup>

@@ -25,7 +25,7 @@ const Sidebar = () => {
     { name: "Settings", href: "/dashboard/settings", icon: <FiSettings /> },
   ];
 
-  const handleNav = (href) => {
+  const handleNav = (href: string) => {
     router.push(href);
     setOpen(false);
   };
@@ -40,8 +40,7 @@ const Sidebar = () => {
             className={`group flex items-center gap-3 px-4 py-2 w-full text-left rounded-lg font-medium text-sm transition
               ${active
                 ? "bg-purple-600/20 text-white border-l-4 border-blue-500"
-                : "text-[#b3b3c6] hover:text-white hover:bg-[#29294d]/50"}`
-            }
+                : "text-[#b3b3c6] hover:text-white hover:bg-[#29294d]/50"}`}
           >
             <span className="text-lg text-blue-400 group-hover:text-purple-300">{link.icon}</span>
             <span>{link.name}</span>

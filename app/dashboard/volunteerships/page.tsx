@@ -5,11 +5,19 @@ import Link from "next/link";
 import VolunteerCard from "../../../components/cards/VolunteerCard";
 import mockVolunteerships from "../../../data/mockVolunteerships";
 
+interface Volunteership {
+	id: string;
+	title: string;
+	status: string;
+	dateRange: string;
+	applicants: any[];
+}
+
 export default function VolunteershipsPage() {
-	const [volunteers, setVolunteers] = useState(mockVolunteerships);
+	const [volunteers, setVolunteers] = useState<Volunteership[]>(mockVolunteerships);
 	const router = useRouter();
 
-	const handleViewDetails = (id) => {
+	const handleViewDetails = (id: string) => {
 		router.push(`/dashboard/volunteerships/${id}`);
 	};
 

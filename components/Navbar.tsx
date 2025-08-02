@@ -2,6 +2,7 @@
 import { FiSearch } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import Image from "next/image";
 
 const Navbar = () => {
   const router = useRouter();
@@ -28,15 +29,17 @@ const Navbar = () => {
         </div>
         {/* Profile image */}
       <div
-        className="ml-4 w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer overflow-hidden bg-[#18182c] flex items-center justify-center hover:ring-2 hover:ring-purple-500 transition"
+        className="relative ml-4 w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer overflow-hidden bg-[#18182c] flex items-center justify-center hover:ring-2 hover:ring-purple-500 transition"
         onClick={() => router.push("/dashboard/settings")}
         title="Open settings"
       >
         {profileImg ? (
-          <img
+          <Image
             src={profileImg}
             alt="profile"
-            className="object-cover w-full h-full rounded-full"
+            fill
+            sizes="40px"
+            className="object-cover rounded-full"
           />
         ) : (
           <span className="text-[#555] text-lg font-bold select-none">M</span>

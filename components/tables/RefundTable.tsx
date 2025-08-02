@@ -1,12 +1,26 @@
 import React from "react";
 
-const statusStyle = {
+const statusStyle: { [key: string]: string } = {
   Approved: "bg-green-600",
   Pending: "bg-yellow-500",
   Rejected: "bg-red-600",
 };
 
-const RefundTable = ({ refunds }) => (
+interface Refund {
+  id: string;
+  user: string;
+  email: string;
+  amount: string;
+  status: string;
+  date: string;
+  reason: string;
+}
+
+interface RefundTableProps {
+  refunds: Refund[];
+}
+
+const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => (
   <div className="w-full overflow-x-auto rounded-lg">
     <table className="w-full">
       <thead>

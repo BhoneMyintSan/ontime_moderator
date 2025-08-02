@@ -1,5 +1,6 @@
 "use client";
 import { useRef, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { SignOutButton } from "@clerk/nextjs";
 
@@ -12,18 +13,21 @@ export default function Settings() {
   const [email, setEmail] = useState("Jhon.morri@gmail.com");
   const [bio, setBio] = useState("");
   const [profileImg, setProfileImg] = useState("");
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  const handlePhotoClick = () => fileInputRef.current.click();
+  const handlePhotoClick = () => fileInputRef.current?.click();
 
-  const handlePhotoChange = (e) => {
-    const file = e.target.files[0];
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
       reader.onload = (ev) => {
-        setProfileImg(ev.target.result);
-        window.localStorage.setItem("profileImg", ev.target.result);
+        const result = ev.target?.result;
+        if (typeof result === 'string') {
+          setProfileImg(result);
+          window.localStorage.setItem("profileImg", result);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -46,9 +50,11 @@ export default function Settings() {
           <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
             <div className="rounded-full w-20 h-20 bg-[#18182c] flex items-center justify-center overflow-hidden border-2 border-[#444]">
               {profileImg ? (
-                <img
+                <Image
                   src={profileImg}
                   alt="profile"
+                  width={80}
+                  height={80}
                   className="w-full h-full object-cover"
                 />
               ) : (

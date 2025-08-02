@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+   id         String   @id @default(uuid())
+  full_name  String
+  email      String   @unique
+  phone      String?
+  status     String   @default("Active")
+  warnings   Int      @default(0)
+  joined_at  DateTime @default(now())
+
+  // Address Info
+  address_line_1   String?
+  address_line_2   String?
+  city             String?
+  state_province   String?
+  zip_postal_code  String?
+  country          String?
+
+  role           String         @default("user") // user, moderator
+
+  reportsFiled   Report[]       @relation("ReportsFiledBy")
+  reportsReceived Report[]      @relation("ReportsFiledAgainst")
+
+  ticketsFiled   Ticket[]       @relation("TicketsFiledBy")
+  ticketsAgainst Ticket[]       @relation("TicketsFiledAgainst")
+
+  refunds        Refund[]
+  applicants     Applicant[]
+  moderationLogs ModerationAction[]
+}
+
+model Report {
+  id             String   @id @default(uuid())
+  service_id     String
+  reason         String
+  note           String?
+  status         String   @default("Unresolved")
+  created_at     DateTime @default(now())
+
+  reported_by_id String
+  against_id     String
+
+  reportedBy     User     @relation("ReportsFiledBy", fields: [reported_by_id], references: [id])
+  reportedUser   User     @relation("ReportsFiledAgainst", fields: [against_id], references: [id])
+}
+
+model Ticket {
+  id             String   @id @default(uuid())
+  service_id     String
+  status         String   @default("Unresolved")
+  created_at     DateTime @default(now())
+
+  reported_by_id String
+  against_id     String
+
+  reportedBy     User     @relation("TicketsFiledBy", fields: [reported_by_id], references: [id])
+  againstUser    User     @relation("TicketsFiledAgainst", fields: [against_id], references: [id])
+}
+
+model Refund {
+  id         String   @id @default(uuid())
+  amount     Int
+  reason     String
+  status     String   @default("Pending") // Pending, Approved, Rejected
+  created_at DateTime @default(now())
+
+  user_id    String
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model Volunteership {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  posted_by   String   // Moderator or Organization Name
+  closed      Boolean  @default(false)
+  created_at  DateTime @default(now())
+
+  applicants  Applicant[]
+}
+
+model Applicant {
+  id               String   @id @default(uuid())
+  user_id          String
+  volunteership_id String
+  showed_up        Boolean  @default(false)
+
+  user             User           @relation(fields: [user_id], references: [id])
+  volunteership    Volunteership  @relation(fields: [volunteership_id], references: [id])
+}
+
+model ModerationAction {
+  id         String   @id @default(uuid())
+  user_id    String
+  action     String   // e.g., "Warning Issued", "User Banned"
+  performed_by String // moderator ID or name
+  note       String?
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+}

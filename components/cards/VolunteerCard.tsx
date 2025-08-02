@@ -1,7 +1,16 @@
 import { FiUsers, FiMoreVertical, FiCalendar } from "react-icons/fi";
 
+interface VolunteerCardProps {
+  data: {
+    status: string;
+    title: string;
+    applicants: number;
+    dateRange: string;
+  };
+  onViewDetails: () => void;
+}
 
-const VolunteerCard = ({ data, onViewDetails }) => {
+const VolunteerCard: React.FC<VolunteerCardProps> = ({ data, onViewDetails }) => {
   const statusStyle =
     data.status === "Open"
       ? "bg-green-600"

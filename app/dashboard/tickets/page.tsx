@@ -3,8 +3,17 @@ import { useState } from "react";
 import TicketTable from "../../../components/tables/TicketTable";
 import ticketsData from "../../../data/mockTickets";
 
+interface Ticket {
+  id: string;
+  service: string;
+  by: string;
+  against: string;
+  date: string;
+  status: string;
+}
+
 export default function Tickets() {
-  const [tickets, setTickets] = useState(ticketsData);
+  const [tickets, setTickets] = useState<Ticket[]>(ticketsData);
   const [activeTab, setActiveTab] = useState("all");
 
   const filterTabs = [
@@ -18,7 +27,7 @@ export default function Tickets() {
       ? tickets
       : tickets.filter((t) => t.status === activeTab);
 
-  const toggleStatus = (id) => {
+  const toggleStatus = (id: string) => {
     setTickets((prev) =>
       prev.map((t) =>
         t.id === id

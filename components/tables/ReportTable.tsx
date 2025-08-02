@@ -1,11 +1,31 @@
 import Link from "next/link";
 
-const statusStyle = {
+const statusStyle: { [key: string]: string } = {
   Resolved: 'bg-green-500',
   Unresolved: 'bg-red-500'
 };
 
-const ReportTable = ({ filter, reports, onToggleStatus }) => {
+interface Report {
+  id: string;
+  service_id: string;
+  reportedBy: {
+    full_name: string;
+  };
+  reportedUser: {
+    full_name: string;
+  };
+  reason: string;
+  created_at: string;
+  status: string;
+}
+
+interface ReportTableProps {
+  filter: string;
+  reports: Report[];
+  onToggleStatus: (id: string) => void;
+}
+
+const ReportTable: React.FC<ReportTableProps> = ({ filter, reports, onToggleStatus }) => {
   const filteredReports =
     filter === "all"
       ? reports
@@ -33,11 +53,11 @@ const ReportTable = ({ filter, reports, onToggleStatus }) => {
               onClick={() => window.location.href = `/dashboard/reports/${r.id}`}
             >
               <td className="py-3 px-3 sm:px-6">{r.id}</td>
-              <td className="py-3 px-3 sm:px-6">{r.serviceId}</td>
-              <td className="py-3 px-3 sm:px-6">{r.reporter}</td>
-              <td className="py-3 px-3 sm:px-6">{r.against}</td>
+              <td className="py-3 px-3 sm:px-6">{r.service_id}</td>
+              <td className="py-3 px-3 sm:px-6">{r.reportedBy.full_name}</td>
+              <td className="py-3 px-3 sm:px-6">{r.reportedUser.full_name}</td>
               <td className="py-3 px-3 sm:px-6">{r.reason}</td>
-              <td className="py-3 px-3 sm:px-6">{r.date}</td>
+              <td className="py-3 px-3 sm:px-6">{new Date(r.created_at).toLocaleDateString()}</td>
               <td className="py-3 px-3 sm:px-6">
                 <button
                   onClick={e => {

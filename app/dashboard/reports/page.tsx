@@ -1,11 +1,15 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useReportStore } from "../../../store/reportStore";
 import ReportTable from '../../../components/tables/ReportTable';
 
 export default function Reports() {
-  const { reports, toggleStatus } = useReportStore();
+  const { reports, fetchReports, toggleStatus } = useReportStore();
   const [activeTab, setActiveTab] = useState("all");
+
+  useEffect(() => {
+    fetchReports();
+  }, [fetchReports]);
 
   const total = reports.length;
   const unresolved = reports.filter(r => r.status === "Unresolved").length;

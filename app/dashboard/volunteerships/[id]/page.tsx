@@ -5,6 +5,21 @@ import { FiDownload } from 'react-icons/fi';
 import { useState } from 'react';
 import mockVolunteerships from '../../../../data/mockVolunteerships';
 
+interface Applicant {
+  name: string;
+  email: string;
+  showUp: boolean;
+}
+
+interface EditInfo {
+  organization: string;
+  description: string;
+  logistics: string;
+  requirements: string;
+  tokenReward: string;
+  contact: string;
+}
+
 export default function VolunteershipDetail() {
   const { id } = useParams();
   const router = useRouter();
@@ -13,20 +28,20 @@ export default function VolunteershipDetail() {
   const volunteershipData = mockVolunteerships.find(v => v.id === id) || mockVolunteerships[0];
 
   // State
-  const [applicants, setApplicants] = useState(volunteershipData.applicants);
+  const [applicants, setApplicants] = useState<Applicant[]>(volunteershipData.applicants);
   const [status, setStatus] = useState(volunteershipData.status);
   const [editMode, setEditMode] = useState(false);
-  const [editInfo, setEditInfo] = useState({
+  const [editInfo, setEditInfo] = useState<EditInfo>({
     organization: volunteershipData.organization || "",
     description: volunteershipData.description || "",
     logistics: volunteershipData.logistics || "",
     requirements: volunteershipData.requirements || "",
-    tokenReward: volunteershipData.tokenReward || "",
+    tokenReward: String(volunteershipData.tokenReward || ""),
     contact: volunteershipData.contact || "",
   });
 
   // Handlers
-  const toggleShowUp = (index) => {
+  const toggleShowUp = (index: number) => {
     setApplicants((prev) =>
       prev.map((a, i) =>
         i === index ? { ...a, showUp: !a.showUp } : a
@@ -34,7 +49,7 @@ export default function VolunteershipDetail() {
     );
   };
 
-  const handleRemove = (index) => {
+  const handleRemove = (index: number) => {
     const applicant = applicants[index];
     if (
       window.confirm(
@@ -45,7 +60,7 @@ export default function VolunteershipDetail() {
     }
   };
 
-  const handleInfoChange = (e) => {
+  const handleInfoChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setEditInfo({ ...editInfo, [e.target.name]: e.target.value });
   };
 
