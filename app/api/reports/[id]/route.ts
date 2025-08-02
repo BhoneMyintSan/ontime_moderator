@@ -2,7 +2,7 @@ import { prisma } from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request, context: { params: { id: string } }) {
-  const { params } = context;
+  const params = await context.params;
   try {
     const report = await prisma.report.findUnique({
       where: { id: params.id },
@@ -24,7 +24,7 @@ export async function GET(request: Request, context: { params: { id: string } })
 }
 
 export async function PATCH(request: Request, context: { params: { id: string } }) {
-  const { params } = context;
+  const params = await context.params;
   try {
     const { status } = await request.json();
     const updatedReport = await prisma.report.update({
