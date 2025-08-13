@@ -1,7 +1,8 @@
 import { prisma } from '../../../../lib/prisma';
 import { NextResponse } from 'next/server';
 
-export async function GET(request: Request, context: { params: { id: string } }) {
+// Use context: { params: any } for compatibility with Next.js App Router
+export async function GET(request: Request, context: any) {
   const params = await context.params;
   try {
     const report = await prisma.report.findUnique({
@@ -23,7 +24,7 @@ export async function GET(request: Request, context: { params: { id: string } })
   }
 }
 
-export async function PATCH(request: Request, context: { params: { id: string } }) {
+export async function PATCH(request: Request, context: any) {
   const params = await context.params;
   try {
     const { status } = await request.json();

@@ -7,103 +7,187 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
-   id         String   @id @default(uuid())
-  full_name  String
-  email      String   @unique
-  phone      String?
-  status     String   @default("Active")
-  warnings   Int      @default(0)
-  joined_at  DateTime @default(now())
-
-  // Address Info
-  address_line_1   String?
-  address_line_2   String?
-  city             String?
-  state_province   String?
-  zip_postal_code  String?
-  country          String?
-
-  role           String         @default("user") // user, moderator
-
-  reportsFiled   Report[]       @relation("ReportsFiledBy")
-  reportsReceived Report[]      @relation("ReportsFiledAgainst")
-
-  ticketsFiled   Ticket[]       @relation("TicketsFiledBy")
-  ticketsAgainst Ticket[]       @relation("TicketsFiledAgainst")
-
-  refunds        Refund[]
-  applicants     Applicant[]
-  moderationLogs ModerationAction[]
+model ads_watching_history {
+  id        Int      @id(map: "ads_watching_history_pk") @default(autoincrement())
+  user_id   String
+  date_time DateTime @db.Timestamptz(6)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ads_watching_history_users_fk")
 }
 
-model Report {
-  id             String   @id @default(uuid())
-  service_id     String
-  reason         String
-  note           String?
-  status         String   @default("Unresolved")
-  created_at     DateTime @default(now())
-
-  reported_by_id String
-  against_id     String
-
-  reportedBy     User     @relation("ReportsFiledBy", fields: [reported_by_id], references: [id])
-  reportedUser   User     @relation("ReportsFiledAgainst", fields: [against_id], references: [id])
+model notification_events {
+  type          String         @db.VarChar
+  target_id     Int
+  created_at    DateTime       @db.Timestamptz(6)
+  id            BigInt         @id(map: "notification_events_pk") @default(autoincrement())
+  notifications notifications?
 }
 
-model Ticket {
-  id             String   @id @default(uuid())
-  service_id     String
-  status         String   @default("Unresolved")
-  created_at     DateTime @default(now())
-
-  reported_by_id String
-  against_id     String
-
-  reportedBy     User     @relation("TicketsFiledBy", fields: [reported_by_id], references: [id])
-  againstUser    User     @relation("TicketsFiledAgainst", fields: [against_id], references: [id])
+model notifications {
+  id                                           Int                 @id(map: "notifications_pk") @default(autoincrement())
+  message                                      String
+  recipient_user_id                            String
+  action_user_id                               String
+  is_read                                      Boolean
+  event_id                                     BigInt
+  notification_events                          notification_events @relation(fields: [id], references: [id], onDelete: Cascade, map: "notifications_notification_events_fk")
+  users_notifications_action_user_idTousers    users               @relation("notifications_action_user_idTousers", fields: [action_user_id], references: [id], onDelete: Cascade, map: "notifications_users_action_fk")
+  users_notifications_recipient_user_idTousers users               @relation("notifications_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_users_recipient_fk")
 }
 
-model Refund {
-  id         String   @id @default(uuid())
-  amount     Int
-  reason     String
-  status     String   @default("Pending") // Pending, Approved, Rejected
-  created_at DateTime @default(now())
-
-  user_id    String
-  user       User     @relation(fields: [user_id], references: [id])
+model payments {
+  id                 Int              @id(map: "payments_pk") @default(autoincrement())
+  service_request_id Int
+  payer_id           String
+  amount_tokens      Int
+  status             payment_status
+  created_at         DateTime         @db.Timestamptz(6)
+  updated_at         DateTime         @db.Timestamptz(6)
+  service_requests   service_requests @relation(fields: [service_request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_service_requests_fk")
+  users              users            @relation(fields: [payer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payments_users_fk")
+  transactions       transactions[]
 }
 
-model Volunteership {
-  id          String   @id @default(uuid())
-  title       String
-  description String
-  posted_by   String   // Moderator or Organization Name
-  closed      Boolean  @default(false)
-  created_at  DateTime @default(now())
-
-  applicants  Applicant[]
+model reviews {
+  id                               Int              @id(map: "reviews_pk") @default(autoincrement())
+  request_id                       Int              @unique(map: "reviews_unique")
+  reviewer_id                      String
+  reviewee_id                      String
+  rating                           Int
+  comment                          String?
+  date_time                        DateTime         @db.Timestamptz(6)
+  service_requests                 service_requests @relation(fields: [request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_service_requests_fk")
+  users_reviews_reviewer_idTousers users            @relation("reviews_reviewer_idTousers", fields: [reviewer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_users_fk")
+  users_reviews_reviewee_idTousers users            @relation("reviews_reviewee_idTousers", fields: [reviewee_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_users_fk_1")
 }
 
-model Applicant {
-  id               String   @id @default(uuid())
-  user_id          String
-  volunteership_id String
-  showed_up        Boolean  @default(false)
-
-  user             User           @relation(fields: [user_id], references: [id])
-  volunteership    Volunteership  @relation(fields: [volunteership_id], references: [id])
+model rewards {
+  id               Int    @id(map: "rewards_pk") @default(autoincrement())
+  title            String
+  description      String
+  cost             Int
+  available_amount Int
 }
 
-model ModerationAction {
-  id         String   @id @default(uuid())
-  user_id    String
-  action     String   // e.g., "Warning Issued", "User Banned"
-  performed_by String // moderator ID or name
-  note       String?
-  created_at DateTime @default(now())
+model service_listings {
+  id           Int      @id(map: "service_listings_pk") @default(autoincrement())
+  title        String
+  description  String
+  token_reward Int
+  posted_by    String
+  posted_at    DateTime @db.Timestamptz(6)
+  category     String
+  image_url    String?
+  users        users    @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
+}
 
-  user       User     @relation(fields: [user_id], references: [id])
+model service_request_completion {
+  id                  Int              @id(map: "services_request_completion_pk") @default(autoincrement())
+  request_id          Int
+  requester_completed Boolean
+  provider_completed  Boolean
+  is_active           Boolean
+  service_requests    service_requests @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "services_request_completion_service_requests_fk")
+}
+
+model service_requests {
+  id                                         Int                          @id(map: "requests_pk") @default(autoincrement())
+  listing_id                                 Int
+  requester_id                               String
+  provider_id                                String
+  status_detail                              service_request_status
+  activity                                   service_activity
+  created_at                                 DateTime                     @db.Timestamptz(6)
+  updated_at                                 DateTime                     @db.Timestamptz(6)
+  token_reward                               Int
+  payments                                   payments[]
+  reviews                                    reviews?
+  service_request_completion                 service_request_completion[]
+  users_service_requests_provider_idTousers  users                        @relation("service_requests_provider_idTousers", fields: [provider_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_requests_users_fk")
+  users_service_requests_requester_idTousers users                        @relation("service_requests_requester_idTousers", fields: [requester_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_requests_users_fk_1")
+}
+
+model transactions {
+  id            Int              @id(map: "transactions_pk") @default(autoincrement())
+  user_id       String
+  payment_id    Int
+  type          transaction_type
+  amount        Int
+  balance_after Int
+  created_at    DateTime         @default(now()) @db.Timestamptz(6)
+  payments      payments         @relation(fields: [payment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_payments_fk")
+  users         users            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_users_fk")
+}
+
+model users {
+  id                                                    String                 @id(map: "users_pk") @unique(map: "users_unique")
+  phone                                                 String
+  token_balance                                         Int
+  status                                                account_status
+  address_line_1                                        String
+  address_line_2                                        String
+  city                                                  String
+  state_province                                        String
+  zip_postal_code                                       String
+  country                                               String
+  joined_at                                             DateTime               @db.Timestamptz(6)
+  email                                                 Boolean
+  full_name                                             String
+  ads_watching_history                                  ads_watching_history[]
+  notifications_notifications_action_user_idTousers     notifications[]        @relation("notifications_action_user_idTousers")
+  notifications_notifications_recipient_user_idTousers  notifications[]        @relation("notifications_recipient_user_idTousers")
+  payments                                              payments[]
+  reviews_reviews_reviewer_idTousers                    reviews[]              @relation("reviews_reviewer_idTousers")
+  reviews_reviews_reviewee_idTousers                    reviews[]              @relation("reviews_reviewee_idTousers")
+  service_listings                                      service_listings[]
+  service_requests_service_requests_provider_idTousers  service_requests[]     @relation("service_requests_provider_idTousers")
+  service_requests_service_requests_requester_idTousers service_requests[]     @relation("service_requests_requester_idTousers")
+  transactions                                          transactions[]
+}
+
+enum account_status {
+  active
+  suspended
+  banned
+}
+
+enum payment_status {
+  initiated
+  holding
+  released
+  refunded
+}
+
+enum service_activity {
+  active
+  inactive
+}
+
+enum service_request_status {
+  pending
+  accepted
+  declined
+  in_progress
+  completed
+  cancelled
+  expired
+}
+
+enum service_status {
+  active
+  in_progress
+  completed
+  cancelled
+}
+
+enum status {
+  created
+  ongoing
+  done
+  cancelled
+}
+
+enum transaction_type {
+  deduct
+  release
+  refund
 }

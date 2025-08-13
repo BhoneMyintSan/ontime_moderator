@@ -1,24 +1,65 @@
-import { prisma } from '../../../../lib/prisma';
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
+import { prisma } from "../../../../lib/prisma";
 
-export async function GET(request: Request, { params }: { params: { id: string } }) {
+/**
+ * GET /api/users/:id
+ */
+export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: params.id },
-      include: {
-        reportsFiled: true,
-        reportsReceived: true,
-        moderationLogs: true,
+      select: {
+        id: true, full_name: true, phone: true, status: true,
+        address_line_1: true, address_line_2: true, city: true, state_province: true,
+        zip_postal_code: true, country: true, joined_at: true, email: true
       },
     });
-
     if (!user) {
-      return NextResponse.json({ status: 'error', message: 'User not found' }, { status: 404 });
+      return NextResponse.json({ status: "error", message: "User not found", data: null }, { status: 404 });
     }
-
-    return NextResponse.json({ status: 'success', data: user });
+    return NextResponse.json({ status: "success", message: "", data: user });
   } catch (error) {
-    console.error('Failed to fetch user:', error);
-    return NextResponse.json({ status: 'error', message: 'Internal Server Error' }, { status: 500 });
+    console.error("Error fetching user:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to fetch user", data: null },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * PATCH /api/users/:id
+ * Allows partial updates; only fields present will be updated.
+ */
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const body = await req.json();
+    const updated = await prisma.user.update({
+      where: { id: params.id },
+      data: body,
+    });
+    return NextResponse.json({ status: "success", message: "User updated", data: updated });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to update user", data: null },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * DELETE /api/users/:id
+ */
+export async function DELETE(_: Request, { params }: { params: { id: string } }) {
+  try {
+    await prisma.user.delete({ where: { id: params.id } });
+    return NextResponse.json({ status: "success", message: "User deleted", data: {} });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    return NextResponse.json(
+      { status: "error", message: "Failed to delete user", data: null },
+      { status: 500 }
+    );
   }
 }
