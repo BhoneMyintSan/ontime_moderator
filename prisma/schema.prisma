@@ -1,10 +1,13 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  output          = "../lib/generated/prisma"
+  previewFeatures = ["typedSql"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model ads_watching_history {
@@ -15,11 +18,11 @@ model ads_watching_history {
 }
 
 model notification_events {
-  type          String         @db.VarChar
+  type          String          @db.VarChar
   target_id     Int
-  created_at    DateTime       @db.Timestamptz(6)
-  id            BigInt         @id(map: "notification_events_pk") @default(autoincrement())
-  notifications notifications?
+  created_at    DateTime        @db.Timestamptz(6)
+  id            BigInt          @id(map: "notification_events_pk") @default(autoincrement())
+  notifications notifications[]
 }
 
 model notifications {
@@ -29,7 +32,7 @@ model notifications {
   action_user_id                               String
   is_read                                      Boolean
   event_id                                     BigInt
-  notification_events                          notification_events @relation(fields: [id], references: [id], onDelete: Cascade, map: "notifications_notification_events_fk")
+  notification_events                          notification_events @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_notification_events_fk")
   users_notifications_action_user_idTousers    users               @relation("notifications_action_user_idTousers", fields: [action_user_id], references: [id], onDelete: Cascade, map: "notifications_users_action_fk")
   users_notifications_recipient_user_idTousers users               @relation("notifications_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_users_recipient_fk")
 }
@@ -44,7 +47,6 @@ model payments {
   updated_at         DateTime         @db.Timestamptz(6)
   service_requests   service_requests @relation(fields: [service_request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_service_requests_fk")
   users              users            @relation(fields: [payer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payments_users_fk")
-  transactions       transactions[]
 }
 
 model reviews {
@@ -69,15 +71,16 @@ model rewards {
 }
 
 model service_listings {
-  id           Int      @id(map: "service_listings_pk") @default(autoincrement())
+  id           Int       @id(map: "service_listings_pk") @default(autoincrement())
   title        String
   description  String
   token_reward Int
   posted_by    String
-  posted_at    DateTime @db.Timestamptz(6)
+  posted_at    DateTime  @db.Timestamptz(6)
   category     String
   image_url    String?
-  users        users    @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
+  reports      reports[]
+  users        users     @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
 }
 
 model service_request_completion {
@@ -107,15 +110,12 @@ model service_requests {
 }
 
 model transactions {
-  id            Int              @id(map: "transactions_pk") @default(autoincrement())
-  user_id       String
-  payment_id    Int
-  type          transaction_type
-  amount        Int
-  balance_after Int
-  created_at    DateTime         @default(now()) @db.Timestamptz(6)
-  payments      payments         @relation(fields: [payment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_payments_fk")
-  users         users            @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_users_fk")
+  id         Int      @id(map: "transactions_pk") @default(autoincrement())
+  user_id    String
+  type       String
+  amount     Int
+  created_at DateTime @default(now()) @db.Timestamptz(6)
+  users      users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_users_fk")
 }
 
 model users {
@@ -136,12 +136,24 @@ model users {
   notifications_notifications_action_user_idTousers     notifications[]        @relation("notifications_action_user_idTousers")
   notifications_notifications_recipient_user_idTousers  notifications[]        @relation("notifications_recipient_user_idTousers")
   payments                                              payments[]
+  reports                                               reports[]
   reviews_reviews_reviewer_idTousers                    reviews[]              @relation("reviews_reviewer_idTousers")
   reviews_reviews_reviewee_idTousers                    reviews[]              @relation("reviews_reviewee_idTousers")
   service_listings                                      service_listings[]
   service_requests_service_requests_provider_idTousers  service_requests[]     @relation("service_requests_provider_idTousers")
   service_requests_service_requests_requester_idTousers service_requests[]     @relation("service_requests_requester_idTousers")
   transactions                                          transactions[]
+}
+
+model reports {
+  id               Int              @id(map: "reports_pk") @default(autoincrement())
+  listing_id       Int
+  reporter_id      String
+  datetime         DateTime         @db.Timestamptz(6)
+  report_reason    String?
+  status           String
+  service_listings service_listings @relation(fields: [listing_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reports_service_listings_fk_1")
+  users            users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
 }
 
 enum account_status {
@@ -184,10 +196,4 @@ enum status {
   ongoing
   done
   cancelled
-}
-
-enum transaction_type {
-  deduct
-  release
-  refund
 }

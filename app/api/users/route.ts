@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../lib/prisma";
+import prisma from "../../../lib/prisma";
 
 /**
  * GET /api/users
@@ -7,7 +7,7 @@ import { prisma } from "../../../lib/prisma";
  */
 export async function GET() {
   try {
-    const users = await prisma.user.findMany({ // <-- FIXED: use singular 'user'
+    const users = await prisma.users.findMany({ 
       orderBy: { joined_at: "desc" },
       select: {
         id: true,
@@ -21,9 +21,11 @@ export async function GET() {
         zip_postal_code: true,
         country: true,
         joined_at: true,
-        email: true,
+
       },
     });
+
+    console.log(users);
 
     return NextResponse.json({ status: "success", message: "", data: users });
   } catch (error) {
@@ -49,6 +51,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "error", message: `Missing field: ${k}`, data: null }, { status: 400 });
   }
 
-  const created = await prisma.user.create({ data: body }); // <-- FIXED: use singular 'user'
+  const created = await prisma.users.create({ data: body }); // <-- FIXED: use plural 'users'
   return NextResponse.json({ status: "success", message: "User created", data: created }, { status: 201 });
 }

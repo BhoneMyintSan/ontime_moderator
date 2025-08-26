@@ -2,7 +2,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-export default function UserTable({ onCountChange }: { onCountChange?: (n: number) => void }) {
+export default function UserTable({
+  onCountChange,
+}: {
+  onCountChange?: (n: number) => void;
+}) {
   const [users, setUsers] = useState([]);
   const router = useRouter();
 
@@ -30,7 +34,6 @@ export default function UserTable({ onCountChange }: { onCountChange?: (n: numbe
       <thead className="bg-[#1c1c2e] text-gray-400 uppercase text-xs">
         <tr>
           <th className="px-4 py-3 text-left">Name (ID)</th>
-          <th className="px-4 py-3 text-left">Email</th>
           <th className="px-4 py-3 text-left">Phone</th>
           <th className="px-4 py-3 text-left">Status</th>
           <th className="px-4 py-3 text-left">Warnings</th>
@@ -47,7 +50,6 @@ export default function UserTable({ onCountChange }: { onCountChange?: (n: numbe
               {user.full_name}
               <div className="text-xs text-gray-400">{user.id}</div>
             </td>
-            <td className="px-4 py-3">{user.email}</td>
             <td className="px-4 py-3">{user.phone || "-"}</td>
             <td className="px-4 py-3">{user.status}</td>
             <td className="px-4 py-3">{user.warnings}</td>

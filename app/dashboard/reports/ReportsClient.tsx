@@ -1,33 +1,15 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import ReportTable from "../../../components/tables/ReportTable";
 
-export default function Reports() {
-  const [reports, setReports] = useState([]);
-  const [loading, setLoading] = useState(true);
+interface ReportsClientProps {
+  initialReports: any[];
+}
+
+export default function ReportsClient({ initialReports }: ReportsClientProps) {
+  const [reports, setReports] = useState(initialReports);
   const [activeTab, setActiveTab] = useState("all");
-
-  useEffect(() => {
-    const fetchReports = async () => {
-      try {
-        const response = await fetch("/api/reports");
-        const data = await response.json();
-
-        if (data.status === "success") {
-          setReports(data.data);
-        } else {
-          console.error("Failed to fetch reports:", data.message);
-        }
-      } catch (error) {
-        console.error("Failed to fetch reports:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchReports();
-  }, []);
 
   const total = reports.length;
   const unresolved = reports.filter((r) => r.status === "Unresolved").length;
@@ -69,14 +51,6 @@ export default function Reports() {
       console.error("Failed to update report status:", error);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-        <div className="text-white">Loading reports...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
