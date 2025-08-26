@@ -1,15 +1,11 @@
 // app/api/reports/route.ts
-import { prisma } from '../../../lib/prisma'
 import { NextResponse } from 'next/server'
+import prisma from "../../../lib/prisma";
+import { getAllReports } from "../../../lib/generated/prisma/sql/getAllReports";
 
 export async function GET() {
   try {
-    const reports = await prisma.report.findMany({
-      include: {
-        reportedBy: true,
-        reportedUser: true,
-      }
-    });
+    const reports = await prisma.$queryRawTyped(getAllReports());
     return NextResponse.json({
       status: "success",
       message: "",

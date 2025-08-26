@@ -1,21 +1,15 @@
-import Link from "next/link";
-
 const statusStyle: { [key: string]: string } = {
-  Resolved: 'bg-green-500',
-  Unresolved: 'bg-red-500'
+  Resolved: "bg-green-500",
+  Unresolved: "bg-red-500",
 };
 
 interface Report {
   id: string;
-  service_id: string;
-  reportedBy: {
-    full_name: string;
-  };
-  reportedUser: {
-    full_name: string;
-  };
-  reason: string;
-  created_at: string;
+  listing_id: number;
+  reporter_name: string;
+  offender_name: string;
+  datetime: Date;
+  report_reason?: string;
   status: string;
 }
 
@@ -25,12 +19,10 @@ interface ReportTableProps {
   onToggleStatus: (id: string) => void;
 }
 
-const ReportTable: React.FC<ReportTableProps> = ({ filter, reports, onToggleStatus }) => {
-  const filteredReports =
-    filter === "all"
-      ? reports
-      : reports.filter((r) => r.status === filter);
-
+const ReportTable: React.FC<ReportTableProps> = ({
+  reports,
+  onToggleStatus,
+}) => {
   return (
     <div className="w-full overflow-x-auto rounded-lg">
       <table className="w-full">
@@ -46,21 +38,25 @@ const ReportTable: React.FC<ReportTableProps> = ({ filter, reports, onToggleStat
           </tr>
         </thead>
         <tbody>
-          {filteredReports.map((r) => (
+          {reports.map((r) => (
             <tr
               key={r.id}
               className="border-t border-[#29294d] hover:bg-[#252540] cursor-pointer"
-              onClick={() => window.location.href = `/dashboard/reports/${r.id}`}
+              onClick={() =>
+                (window.location.href = `/dashboard/reports/${r.id}`)
+              }
             >
               <td className="py-3 px-3 sm:px-6">{r.id}</td>
-              <td className="py-3 px-3 sm:px-6">{r.service_id}</td>
-              <td className="py-3 px-3 sm:px-6">{r.reportedBy.full_name}</td>
-              <td className="py-3 px-3 sm:px-6">{r.reportedUser.full_name}</td>
-              <td className="py-3 px-3 sm:px-6">{r.reason}</td>
-              <td className="py-3 px-3 sm:px-6">{new Date(r.created_at).toLocaleDateString()}</td>
+              <td className="py-3 px-3 sm:px-6">{r.listing_id}</td>
+              <td className="py-3 px-3 sm:px-6">{r.reporter_name}</td>
+              <td className="py-3 px-3 sm:px-6">{r.offender_name}</td>
+              <td className="py-3 px-3 sm:px-6">{r.report_reason}</td>
+              <td className="py-3 px-3 sm:px-6">
+                {new Date(r.datetime).toLocaleDateString()}
+              </td>
               <td className="py-3 px-3 sm:px-6">
                 <button
-                  onClick={e => {
+                  onClick={(e) => {
                     e.stopPropagation();
                     onToggleStatus(r.id);
                   }}

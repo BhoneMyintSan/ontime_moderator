@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
-import { prisma } from "../../../../lib/prisma";
+import prisma from "../../../../lib/prisma";
 
 /**
  * GET /api/users/:id
  */
 export async function GET(_: Request, { params }: { params: { id: string } }) {
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: { id: params.id },
       select: {
         id: true, full_name: true, phone: true, status: true,
@@ -34,7 +34,7 @@ export async function GET(_: Request, { params }: { params: { id: string } }) {
 export async function PATCH(req: Request, { params }: { params: { id: string } }) {
   try {
     const body = await req.json();
-    const updated = await prisma.user.update({
+    const updated = await prisma.users.update({
       where: { id: params.id },
       data: body,
     });
@@ -53,7 +53,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } }
  */
 export async function DELETE(_: Request, { params }: { params: { id: string } }) {
   try {
-    await prisma.user.delete({ where: { id: params.id } });
+    await prisma.users.delete({ where: { id: params.id } });
     return NextResponse.json({ status: "success", message: "User deleted", data: {} });
   } catch (error) {
     console.error("Error deleting user:", error);
