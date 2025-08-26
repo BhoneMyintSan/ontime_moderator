@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import mockReports from '../../../../data/mockReports.js';
 
-// Use context: { params: any } for compatibility with Next.js App Router
-export async function GET(request: Request, context: any) {
+// Use context: { params: Promise<{ id: string }> } for compatibility with Next.js App Router
+export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
   try {
     // TODO: Replace with actual database query when report model is created
@@ -27,7 +27,7 @@ export async function GET(request: Request, context: any) {
   }
 }
 
-export async function PATCH(request: Request, context: any) {
+export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
   try {
     const { status } = await request.json();
