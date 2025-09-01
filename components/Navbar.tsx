@@ -30,13 +30,19 @@ const Navbar = () => {
   const handleSignOut = async () => {
     try {
       setShowDropdown(false);
-      await signOut();
-      // Replace the current history entry to prevent back button navigation
-      window.location.replace('/login');
+      // Clear all Clerk session data
+      await signOut({ redirectUrl: '/login' });
+      // Clear browser storage
+      localStorage.clear();
+      sessionStorage.clear();
+      // Force page reload to clear any cached session state
+      window.location.href = '/login';
     } catch (error) {
       console.error('Sign out error:', error);
-      // Fallback to regular navigation if replace fails
-      router.push('/login');
+      // Fallback: clear storage and redirect
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/login';
     }
   };
 

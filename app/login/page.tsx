@@ -1,17 +1,38 @@
 "use client";
-import { useState } from "react";
-import { useSignIn } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { useSignIn, useUser } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import { FiMail, FiLock, FiEye, FiEyeOff, FiLoader } from "react-icons/fi";
 
 export default function CustomSignIn() {
   const { isLoaded, signIn, setActive } = useSignIn();
+  const { user } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // Redirect if user is already signed in
+  useEffect(() => {
+    if (user) {
+      router.replace('/dashboard');
+    }
+  }, [user, router]);
+
+  const clearSession = async () => {
+    try {
+      await fetch('/api/auth/clear-session', { method: 'POST' });
+      // Clear local storage
+      localStorage.clear();
+      sessionStorage.clear();
+      // Reload page to ensure clean state
+      window.location.reload();
+    } catch (error) {
+      console.error('Failed to clear session:', error);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,10 +49,16 @@ export default function CustomSignIn() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
+        router.replace("/dashboard");
       }
     } catch (err: any) {
-      setError(err.errors?.[0]?.message || "Sign in failed. Please try again.");
+      // If session conflict, offer to clear session
+      if (err.errors?.[0]?.code === "session_exists" || 
+          err.errors?.[0]?.message?.includes("session")) {
+        setError("Session conflict detected. Please clear your session and try again.");
+      } else {
+        setError(err.errors?.[0]?.message || "Sign in failed. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -107,6 +134,14 @@ export default function CustomSignIn() {
             {error && (
               <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
                 <p className="text-red-400 text-sm">{error}</p>
+                {error.includes("Session conflict") && (
+                  <button
+                    onClick={clearSession}
+                    className="mt-2 text-blue-400 hover:text-blue-300 underline text-sm"
+                  >
+                    Clear Session & Reload
+                  </button>
+                )}
               </div>
             )}
 
