@@ -1,18 +1,47 @@
 "use client";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
-import { SignOutButton, SignedIn, SignedOut, RedirectToSignIn } from "@clerk/nextjs";
+import { SignOutButton, SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
+import { FiLogOut, FiSave, FiUser } from "react-icons/fi";
 
 export default function Settings() {
+  const { user } = useUser();
   const [notify, setNotify] = useState(true);
   const [language, setLanguage] = useState("English (US)");
   const [timezone, setTimezone] = useState("Pacific Time (PT)");
-  const [firstName, setFirstName] = useState("Jhon");
-  const [lastName, setLastName] = useState("Morrison");
-  const [email, setEmail] = useState("Jhon.morri@gmail.com");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
   const [bio, setBio] = useState("");
   const [profileImg, setProfileImg] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load user data from Clerk
+  useEffect(() => {
+    if (user) {
+      setFirstName(user.firstName || "");
+      setLastName(user.lastName || "");
+      setEmail(user.emailAddresses?.[0]?.emailAddress || "");
+      setProfileImg(user.imageUrl || "");
+    }
+  }, [user]);
+
+  // Load saved preferences
+  useEffect(() => {
+    const savedImg = window.localStorage.getItem("profileImg");
+    const savedBio = window.localStorage.getItem("userBio");
+    const savedNotify = window.localStorage.getItem("notifications");
+    const savedLang = window.localStorage.getItem("language");
+    const savedTz = window.localStorage.getItem("timezone");
+    
+    if (savedImg) setProfileImg(savedImg);
+    if (savedBio) setBio(savedBio);
+    if (savedNotify) setNotify(savedNotify === "true");
+    if (savedLang) setLanguage(savedLang);
+    if (savedTz) setTimezone(savedTz);
+  }, []);
 
   const handlePhotoClick = () => fileInputRef.current?.click();
 
@@ -34,6 +63,29 @@ export default function Settings() {
   const handleRemovePhoto = () => {
     setProfileImg("");
     window.localStorage.removeItem("profileImg");
+  };
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    setSaveMessage("");
+    
+    try {
+      // Save preferences to localStorage
+      window.localStorage.setItem("userBio", bio);
+      window.localStorage.setItem("notifications", notify.toString());
+      window.localStorage.setItem("language", language);
+      window.localStorage.setItem("timezone", timezone);
+      
+      // Simulate API call delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setSaveMessage("Settings saved successfully!");
+      setTimeout(() => setSaveMessage(""), 3000);
+    } catch (error) {
+      setSaveMessage("Failed to save settings. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -116,7 +168,7 @@ export default function Settings() {
                   onChange={e => setEmail(e.target.value)}
                 />
               </div>
-              <div>
+              <div className="mb-6">
                 <label className="block text-[#b3b3c6] mb-1">Bio</label>
                 <textarea
                   className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2"
@@ -126,6 +178,23 @@ export default function Settings() {
                   value={bio}
                   onChange={e => setBio(e.target.value)}
                 />
+              </div>
+              
+              {/* Save Button */}
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleSaveSettings}
+                  disabled={isSaving}
+                  className="bg-[#6366f1] hover:bg-[#4f46e5] disabled:bg-[#4b5563] px-6 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2"
+                >
+                  <FiSave size={16} />
+                  {isSaving ? "Saving..." : "Save Changes"}
+                </button>
+                {saveMessage && (
+                  <span className={`text-sm ${saveMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                    {saveMessage}
+                  </span>
+                )}
               </div>
             </div>
 
@@ -176,15 +245,29 @@ export default function Settings() {
                   <option>Central European Time (CET)</option>
                 </select>
               </div>
-              <div className="mt-8 flex justify-end">
-                <SignOutButton redirectUrl="/login">
-                  <button
-                    type="button"
-                    className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
-                  >
-                    Logout
-                  </button>
-                </SignOutButton>
+              <div className="mt-8 space-y-4">
+                <div className="border-t border-[#29294d] pt-6">
+                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
+                    <FiUser size={16} />
+                    Account Actions
+                  </h3>
+                  <div className="space-y-3">
+                    <div className="bg-[#18182c] p-4 rounded-lg border border-[#29294d]">
+                      <p className="text-[#b3b3c6] text-sm mb-3">
+                        Signed in as <span className="text-white font-medium">{user?.fullName || "User"}</span>
+                      </p>
+                      <SignOutButton redirectUrl="/login">
+                        <button
+                          type="button"
+                          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2 text-sm"
+                        >
+                          <FiLogOut size={16} />
+                          Sign Out
+                        </button>
+                      </SignOutButton>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

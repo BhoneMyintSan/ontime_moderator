@@ -1,7 +1,6 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import TicketTable from "../../../components/tables/TicketTable";
-import ticketsData from "../../../data/mockTickets";
 
 interface Ticket {
   id: string;
@@ -12,9 +11,42 @@ interface Ticket {
   status: string;
 }
 
+interface ApiResponse<T> {
+  status: string;
+  message: string;
+  data: T;
+}
+
 export default function Tickets() {
-  const [tickets, setTickets] = useState<Ticket[]>(ticketsData);
+  const [tickets, setTickets] = useState<Ticket[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
+
+  useEffect(() => {
+    const fetchTickets = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const response = await fetch("/api/tickets");
+        const data: ApiResponse<Ticket[]> = await response.json();
+
+        if (data.status === "success") {
+          setTickets(data.data);
+        } else {
+          setError(data.message || "Failed to fetch tickets");
+        }
+      } catch (err) {
+        setError("Failed to fetch tickets");
+        console.error("Failed to fetch tickets:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTickets();
+  }, []);
 
   const filterTabs = [
     { label: "All Ticket", key: "all", count: tickets.length },
@@ -27,15 +59,51 @@ export default function Tickets() {
       ? tickets
       : tickets.filter((t) => t.status === activeTab);
 
-  const toggleStatus = (id: string) => {
-    setTickets((prev) =>
-      prev.map((t) =>
-        t.id === id
-          ? { ...t, status: t.status === "Resolved" ? "Unresolved" : "Resolved" }
-          : t
-      )
-    );
+  const toggleStatus = async (id: string) => {
+    try {
+      const ticket = tickets.find((t) => t.id === id);
+      if (!ticket) return;
+
+      const newStatus = ticket.status === "Resolved" ? "Unresolved" : "Resolved";
+
+      const response = await fetch(`/api/tickets/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ status: newStatus }),
+      });
+
+      const data: ApiResponse<Ticket> = await response.json();
+
+      if (data.status === "success") {
+        setTickets((prev) =>
+          prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t))
+        );
+      } else {
+        setError(data.message || "Failed to update ticket status");
+      }
+    } catch (err) {
+      setError("Failed to update ticket status");
+      console.error("Failed to update ticket status:", err);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
+        <div className="text-white text-center">Loading tickets...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
+        <div className="text-red-400 text-center">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">

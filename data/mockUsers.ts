@@ -1,34 +1,36 @@
-const mockUsers = [
+import { User } from '@/lib/types';
+
+const mockUsers: User[] = [
   {
-    id: 1,
+    id: '1',
+    full_name: 'alice_brown',
     username: 'alice_brown',
     email: 'alice_b@gmail.com',
     phone: '(+66)12345678',
     status: 'Active',
-    joined: 'March 2023',
     warnings: 2,
-    avatar: 'https://i.pravatar.cc/40?img=1'
+    avatar: 'https://i.pravatar.cc/40?img=1',
   },
   {
-    id: 2,
+    id: '2',
+    full_name: 'john_doe',
     username: 'john_doe',
     email: 'john_d@gmail.com',
     phone: '(+66)87654321',
     status: 'Away',
-    joined: 'January 2023',
     warnings: 1,
-    avatar: 'https://i.pravatar.cc/40?img=2'
+    avatar: 'https://i.pravatar.cc/40?img=2',
   },
   {
-    id: 3,
+    id: '3',
+    full_name: 'emily_white',
     username: 'emily_white',
     email: 'emily_w@gmail.com',
     phone: '(+66)54321876',
     status: 'Suspended',
-    joined: 'April 2023',
     warnings: 3,
-    avatar: 'https://i.pravatar.cc/40?img=3'
-  }
+    avatar: 'https://i.pravatar.cc/40?img=3',
+  },
 ];
 
 export default mockUsers;
