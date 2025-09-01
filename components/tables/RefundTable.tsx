@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { Refund } from "@/lib/types";
 import SearchAndFilter from "../SearchAndFilter";
 import Pagination from "../Pagination";
@@ -51,7 +51,7 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
   const totalPages = Math.ceil(filteredRefunds.length / itemsPerPage);
 
   // Reset to page 1 when search or filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filters]);
 

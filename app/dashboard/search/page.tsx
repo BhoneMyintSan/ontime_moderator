@@ -129,7 +129,7 @@ export default function SearchPage() {
           <h1 className="text-3xl font-bold mb-2">Search Results</h1>
           {query && (
             <p className="text-[#b3b3c6]">
-              Showing results for: <span className="text-white font-semibold">"{query}"</span>
+              Showing results for: <span className="text-white font-semibold">&quot;{query}&quot;</span>
             </p>
           )}
         </div>

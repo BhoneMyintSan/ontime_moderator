@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import SearchAndFilter from "../SearchAndFilter";
 import Pagination from "../Pagination";
 
@@ -64,7 +64,7 @@ const ReportTable: React.FC<ReportTableProps> = ({ reports, filter, onToggleStat
   const totalPages = Math.ceil(filteredReports.length / itemsPerPage);
 
   // Reset to page 1 when search or filters change
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, filters]);
 
