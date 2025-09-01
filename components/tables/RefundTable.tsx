@@ -78,7 +78,7 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
             </tr>
           </thead>
           <tbody>
-            {filteredRefunds.map((refund) => (
+            {paginatedRefunds.map((refund) => (
               <tr
                 key={refund.id}
                 className="border-t border-[#29294d] hover:bg-[#252540] transition"
@@ -99,7 +99,7 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
                 <td className="py-3 px-3 sm:px-6">{refund.reason}</td>
               </tr>
             ))}
-            {filteredRefunds.length === 0 && (
+            {paginatedRefunds.length === 0 && (
               <tr>
                 <td colSpan={7} className="text-center py-8 text-[#b3b3c6]">
                   {searchQuery || Object.keys(filters).length > 0 
@@ -111,6 +111,14 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
           </tbody>
         </table>
       </div>
+      
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        itemsPerPage={itemsPerPage}
+        totalItems={filteredRefunds.length}
+      />
     </div>
   );
 };

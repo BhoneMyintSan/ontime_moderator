@@ -3,13 +3,15 @@ import { FiSearch, FiLogOut, FiUser } from "react-icons/fi";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import { useUser, SignOutButton } from "@clerk/nextjs";
+import { useUser, useClerk } from "@clerk/nextjs";
 
 const Navbar = () => {
   const router = useRouter();
   const { user } = useUser();
+  const { signOut } = useClerk();
   const [profileImg, setProfileImg] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Try to load the profile image from localStorage (if you save it there in your settings page)
   useEffect(() => {
@@ -17,19 +19,42 @@ const Navbar = () => {
     setProfileImg(img);
   }, []);
 
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      // Navigate to a search results page or handle search
+      router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery.trim())}`);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      setShowDropdown(false);
+      await signOut();
+      // Replace the current history entry to prevent back button navigation
+      window.location.replace('/login');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      // Fallback to regular navigation if replace fails
+      router.push('/login');
+    }
+  };
+
   return (
     <div className="w-full flex flex-row items-center justify-end gap-2 sm:gap-0 mb-6 relative">
       <div className="flex items-center gap-3 ml-2 flex-shrink-0">
-        <div className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg">
+        <form onSubmit={handleSearch} className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg">
           <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
             <FiSearch size={18} />
           </span>
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search by name, ID, email, or keywords..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             className="bg-[#252540] text-white pl-10 pr-4 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
           />
-        </div>
+        </form>
         
         {/* User Profile Dropdown */}
         <div className="relative">
@@ -71,12 +96,13 @@ const Navbar = () => {
                   <FiUser size={16} />
                   Profile Settings
                 </button>
-                <SignOutButton redirectUrl="/login">
-                  <button className="w-full px-4 py-2 text-left text-red-400 hover:bg-[#252540] transition flex items-center gap-3">
-                    <FiLogOut size={16} />
-                    Sign Out
-                  </button>
-                </SignOutButton>
+                <button 
+                  onClick={handleSignOut}
+                  className="w-full px-4 py-2 text-left text-red-400 hover:bg-[#252540] transition flex items-center gap-3"
+                >
+                  <FiLogOut size={16} />
+                  Sign Out
+                </button>
               </div>
             </div>
           )}

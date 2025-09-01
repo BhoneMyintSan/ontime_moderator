@@ -151,14 +151,15 @@ model users {
 }
 
 model reports {
-  id               Int              @id(map: "reports_pk") @default(autoincrement())
-  listing_id       Int
-  reporter_id      String
-  datetime         DateTime         @db.Timestamptz(6)
-  report_reason    String?
-  status           String
-  service_listings service_listings @relation(fields: [listing_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reports_service_listings_fk_1")
-  users            users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
+  id                Int              @id(map: "reports_pk") @default(autoincrement())
+  listing_id        Int
+  reporter_id       String
+  datetime          DateTime         @db.Timestamptz(6)
+  report_reason     String?
+  status            String
+  additional_detail String?
+  service_listings  service_listings @relation(fields: [listing_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reports_service_listings_fk_1")
+  users             users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
 }
 
 model redeemed_rewards {

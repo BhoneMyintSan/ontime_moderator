@@ -1,6 +1,27 @@
-import { clerkMiddleware } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
 
-export default clerkMiddleware()
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/api/users(.*)',
+  '/api/reports(.*)',
+  '/api/tickets(.*)',
+  '/api/refunds(.*)',
+])
+
+export default clerkMiddleware(async (auth, req) => {
+  // Redirect disabled Clerk account portal routes to custom pages
+  if (req.nextUrl.pathname.startsWith('/user-profile')) {
+    return Response.redirect(new URL('/dashboard/settings', req.url))
+  }
+  
+  if (req.nextUrl.pathname.startsWith('/user-button')) {
+    return Response.redirect(new URL('/dashboard/settings', req.url))
+  }
+
+  if (isProtectedRoute(req)) {
+    await auth.protect()
+  }
+})
 
 export const config = {
   matcher: [

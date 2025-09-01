@@ -3,8 +3,18 @@
 import { useState, useEffect } from "react";
 import ReportTable from "../../../components/tables/ReportTable";
 
+interface Report {
+  id: number;
+  listing_id: number;
+  reporter_name: string;
+  report_reason: string;
+  datetime: string;
+  status: string;
+  offender_name?: string;
+}
+
 export default function Reports() {
-  const [reports, setReports] = useState([]);
+  const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("all");
 
@@ -46,7 +56,7 @@ export default function Reports() {
 
   const handleToggleStatus = async (id: string) => {
     try {
-      const report = reports.find((r) => r.id === id);
+      const report = reports.find((r) => r.id.toString() === id);
       if (!report) return;
 
       const newStatus =
@@ -62,7 +72,7 @@ export default function Reports() {
 
       if (response.ok) {
         setReports((prev) =>
-          prev.map((r) => (r.id === id ? { ...r, status: newStatus } : r))
+          prev.map((r) => (r.id.toString() === id ? { ...r, status: newStatus } : r))
         );
       }
     } catch (error) {
@@ -72,17 +82,18 @@ export default function Reports() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-        <div className="text-white">Loading reports...</div>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center py-12 text-[#b3b3c6]">Loading reports...</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">
+    <div className="max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold text-white mb-2">
         Reports
       </h1>
+      <p className="text-[#b3b3c6] mb-8">Review and manage user reports and moderation requests.</p>
       <div className="flex flex-wrap gap-2 sm:gap-4 mb-8">
         {filterTabs.map((tab) => (
           <button
@@ -100,12 +111,14 @@ export default function Reports() {
           </button>
         ))}
       </div>
-      <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <ReportTable
-          reports={filteredReports}
-          filter={activeTab}
-          onToggleStatus={handleToggleStatus}
-        />
+      <div className="bg-[#23233a] rounded-lg shadow-lg overflow-hidden">
+        <div className="p-6">
+          <ReportTable
+            reports={filteredReports}
+            filter={activeTab}
+            onToggleStatus={handleToggleStatus}
+          />
+        </div>
       </div>
     </div>
   );

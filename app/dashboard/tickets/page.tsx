@@ -91,23 +91,24 @@ export default function Tickets() {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-        <div className="text-white text-center">Loading tickets...</div>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center py-12 text-[#b3b3c6]">Loading tickets...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-        <div className="text-red-400 text-center">Error: {error}</div>
+      <div className="max-w-7xl mx-auto">
+        <div className="text-center py-12 text-red-400">Error: {error}</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
-      <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Ticket</h1>
+    <div className="max-w-7xl mx-auto">
+      <h1 className="text-3xl font-bold text-white mb-2">Tickets</h1>
+      <p className="text-[#b3b3c6] mb-8">Manage support tickets and user inquiries.</p>
       <div className="flex flex-wrap gap-2 sm:gap-4 mb-8">
         {filterTabs.map((tab) => (
           <button
@@ -125,8 +126,10 @@ export default function Tickets() {
           </button>
         ))}
       </div>
-      <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <TicketTable tickets={filteredTickets} onToggleStatus={toggleStatus} />
+      <div className="bg-[#23233a] rounded-lg shadow-lg overflow-hidden">
+        <div className="p-6">
+          <TicketTable tickets={filteredTickets} onToggleStatus={toggleStatus} />
+        </div>
       </div>
     </div>
   );
