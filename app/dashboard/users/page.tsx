@@ -1,9 +1,17 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import UserTable from "../../../components/tables/UserTable";
 
 export default function Users() {
   const [totalUsers, setTotalUsers] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  // Simulate loading state based on UserTable's count update
+  useEffect(() => {
+    if (totalUsers > 0 || totalUsers === 0) {
+      setLoading(false);
+    }
+  }, [totalUsers]);
 
   return (
     <div className="max-w-5xl mx-auto mt-10 px-2 sm:px-4">
@@ -31,7 +39,11 @@ export default function Users() {
       </div>
 
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <UserTable onCountChange={setTotalUsers} />
+        {loading ? (
+          <div className="p-8 text-center text-white">Loading user...</div>
+        ) : (
+          <UserTable onCountChange={setTotalUsers} />
+        )}
       </div>
     </div>
   );

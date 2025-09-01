@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@layer theme, base, clerk, components, utilities;
+@import 'tailwindcss';
+
 
 /* Custom global styles */
 body {
