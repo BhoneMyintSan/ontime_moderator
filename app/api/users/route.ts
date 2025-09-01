@@ -25,7 +25,6 @@ export async function GET() {
       },
     });
 
-    console.log(users);
 
     return NextResponse.json({ status: "success", message: "", data: users });
   } catch (error) {
