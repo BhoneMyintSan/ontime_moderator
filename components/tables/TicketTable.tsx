@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import SearchAndFilter from "../SearchAndFilter";
 
 interface Ticket {
@@ -16,8 +17,17 @@ interface TicketTableProps {
 }
 
 const TicketTable: React.FC<TicketTableProps> = ({ tickets, onToggleStatus }) => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState<Record<string, string>>({});
+
+  const handleRowClick = (ticketId: string, event: React.MouseEvent) => {
+    // Don't navigate if the status button was clicked
+    if ((event.target as HTMLElement).closest('button')) {
+      return;
+    }
+    router.push(`/dashboard/tickets/${ticketId}`);
+  };
 
   const filterOptions = {
     status: [
@@ -77,6 +87,7 @@ const TicketTable: React.FC<TicketTableProps> = ({ tickets, onToggleStatus }) =>
               <tr
                 key={t.id}
                 className="border-t border-[#29294d] text-[#e6e6f0] text-base transition-colors hover:bg-[#252540] cursor-pointer"
+                onClick={(e) => handleRowClick(t.id, e)}
               >
                 <td className="py-3 px-3 sm:px-6">{t.id}</td>
                 <td className="py-3 px-3 sm:px-6">{t.service}</td>
@@ -85,7 +96,10 @@ const TicketTable: React.FC<TicketTableProps> = ({ tickets, onToggleStatus }) =>
                 <td className="py-3 px-3 sm:px-6">{t.date}</td>
                 <td className="py-3 px-3 sm:px-6">
                   <button
-                    onClick={() => onToggleStatus(t.id)}
+                    onClick={(e) => {
+                      e.stopPropagation(); // Prevent row click
+                      onToggleStatus(t.id);
+                    }}
                     className={`w-28 px-4 py-1 rounded-full text-sm font-semibold focus:outline-none transition text-center
                       ${
                         t.status === "Resolved"

@@ -6,9 +6,16 @@ interface TicketUpdateData {
 }
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  
   try {
+    const params = await context.params;
+    
+    if (!params || !params.id) {
+      return NextResponse.json(
+        { status: 'error', message: 'Ticket ID is required' }, 
+        { status: 400 }
+      );
+    }
+
     const ticketId = parseInt(params.id);
     
     if (isNaN(ticketId)) {
@@ -43,13 +50,38 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       );
     }
 
+    // Get service listing details
+    const serviceListing = await prisma.service_listings.findUnique({
+      where: { id: ticket.listing_id },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        category: true,
+        token_reward: true,
+        posted_at: true
+      }
+    });
+
     const transformedTicket = {
       id: ticket.id.toString(),
       service: ticket.listing_id.toString(),
+      serviceDetails: serviceListing ? {
+        title: serviceListing.title,
+        description: serviceListing.description,
+        category: serviceListing.category,
+        tokenReward: serviceListing.token_reward,
+        postedAt: serviceListing.posted_at.toISOString().split('T')[0]
+      } : null,
       by: ticket.users_service_requests_requester_idTousers.full_name,
+      byId: ticket.users_service_requests_requester_idTousers.id,
       against: ticket.users_service_requests_provider_idTousers.full_name,
+      againstId: ticket.users_service_requests_provider_idTousers.id,
       date: ticket.created_at.toISOString().split('T')[0],
-      status: ticket.status_detail === 'completed' ? 'Resolved' : 'Unresolved'
+      updatedDate: ticket.updated_at.toISOString().split('T')[0],
+      status: ticket.status_detail === 'completed' ? 'Resolved' : 'Unresolved',
+      activity: ticket.activity,
+      tokenReward: ticket.token_reward
     };
 
     return NextResponse.json({ 
@@ -58,6 +90,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       data: transformedTicket 
     });
   } catch (error) {
+    console.error('Error in GET /api/tickets/[id]:', error);
     return NextResponse.json(
       { status: 'error', message: 'Failed to fetch ticket' }, 
       { status: 500 }
@@ -66,9 +99,16 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 }
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  
   try {
+    const params = await context.params;
+    
+    if (!params || !params.id) {
+      return NextResponse.json(
+        { status: 'error', message: 'Ticket ID is required' }, 
+        { status: 400 }
+      );
+    }
+
     const ticketId = parseInt(params.id);
     
     if (isNaN(ticketId)) {
@@ -126,10 +166,16 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
     const transformedTicket = {
       id: updatedTicket.id.toString(),
       service: updatedTicket.listing_id.toString(),
+      serviceDetails: null, // We don't need to fetch service details again for update
       by: updatedTicket.users_service_requests_requester_idTousers.full_name,
+      byId: updatedTicket.users_service_requests_requester_idTousers.id,
       against: updatedTicket.users_service_requests_provider_idTousers.full_name,
+      againstId: updatedTicket.users_service_requests_provider_idTousers.id,
       date: updatedTicket.created_at.toISOString().split('T')[0],
-      status: body.status
+      updatedDate: updatedTicket.updated_at.toISOString().split('T')[0],
+      status: body.status,
+      activity: updatedTicket.activity,
+      tokenReward: updatedTicket.token_reward
     };
 
     return NextResponse.json({ 
@@ -138,6 +184,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       data: transformedTicket 
     });
   } catch (error) {
+    console.error('Error in PATCH /api/tickets/[id]:', error);
+    
     if (typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2025') {
       return NextResponse.json(
         { status: 'error', message: 'Ticket not found' },

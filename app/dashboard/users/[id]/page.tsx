@@ -10,10 +10,16 @@ export default function UserProfile() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || Array.isArray(id)) return;
+    
     const fetchUser = async () => {
       try {
         const res = await fetch(`/api/users/${id}`);
+        
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        
         const json = await res.json();
         if (json.status === "success") {
           setUserData(json.data);
@@ -37,7 +43,7 @@ export default function UserProfile() {
   const statusOptions = ["Active", "Under Review", "Suspended", "Banned"];
 
   useEffect(() => {
-    if (userData) {
+    if (userData && userData.status) {
       setAccountStatus(userData.status);
     }
   }, [userData]);
@@ -171,15 +177,15 @@ export default function UserProfile() {
       {/* Stats */}
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
         <div className="flex-1 bg-[#23233a] rounded-xl p-5 shadow border border-[#29294d] flex flex-col items-center transition-all duration-300">
-          <span className="text-[#b3b3c6] text-sm mb-1">Total Reports</span>
+          <span className="text-[#b3b3c6] text-sm mb-1">Reports Made</span>
           <span className="text-2xl font-bold text-white">
-            {userData.reportsReceived.length}
+            {userData.reports?.length || 0}
           </span>
         </div>
         <div className="flex-1 bg-[#23233a] rounded-xl p-5 shadow border border-[#29294d] flex flex-col items-center transition-all duration-300">
           <span className="text-[#b3b3c6] text-sm mb-1">Warnings Issued</span>
           <span className="text-2xl font-bold text-white">
-            {userData.warnings}
+            {userData.warnings || 0}
           </span>
         </div>
         <div className="flex-1 bg-[#23233a] rounded-xl p-5 shadow border border-[#29294d] flex flex-col items-center transition-all duration-300">
@@ -204,27 +210,41 @@ export default function UserProfile() {
 
       {/* Report History */}
       <div className="mb-8">
-        <h2 className="text-xl font-bold text-white mb-3">Report History</h2>
+        <h2 className="text-xl font-bold text-white mb-3">Reports Made by User</h2>
         <div className="space-y-3">
-          {userData.reportsReceived.map((report: any) => (
-            <div
-              key={report.id}
-              className="bg-[#23233a] rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between border border-[#29294d] shadow transition-all duration-200 hover:bg-[#252540]"
-            >
-              <div>
-                <div className="text-white font-semibold">{report.reason}</div>
-                <div className="text-[#b3b3c6] text-sm">
-                  Reported by: {report.reported_by_id}
+          {userData.reports && userData.reports.length > 0 ? (
+            userData.reports.map((report: any) => (
+              <div
+                key={report.id}
+                className="bg-[#23233a] rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between border border-[#29294d] shadow transition-all duration-200 hover:bg-[#252540]"
+              >
+                <div>
+                  <div className="text-white font-semibold">{report.report_reason || 'No reason provided'}</div>
+                  <div className="text-[#b3b3c6] text-sm">
+                    Listing ID: {report.listing_id}
+                  </div>
+                  <div className="text-[#b3b3c6] text-sm">
+                    Status: {report.status}
+                  </div>
+                  {report.additional_detail && (
+                    <div className="text-[#b3b3c6] text-sm mt-1">
+                      Details: {report.additional_detail}
+                    </div>
+                  )}
+                </div>
+                <div className="flex flex-col items-end mt-2 sm:mt-0">
+                  <span className="text-[#b3b3c6] text-sm">
+                    {new Date(report.datetime).toLocaleDateString()}
+                  </span>
+                  <span className="text-[#b3b3c6] text-xs">#{report.id}</span>
                 </div>
               </div>
-              <div className="flex flex-col items-end mt-2 sm:mt-0">
-                <span className="text-[#b3b3c6] text-sm">
-                  {new Date(report.created_at).toLocaleDateString()}
-                </span>
-                <span className="text-[#b3b3c6] text-xs">#{report.id}</span>
-              </div>
+            ))
+          ) : (
+            <div className="bg-[#23233a] rounded-xl px-5 py-4 border border-[#29294d] text-center text-[#b3b3c6]">
+              No reports found
             </div>
-          ))}
+          )}
         </div>
       </div>
 
@@ -232,25 +252,31 @@ export default function UserProfile() {
       <div className="mb-8">
         <h2 className="text-xl font-bold text-white mb-3">Moderation Actions</h2>
         <div className="space-y-3">
-          {userData.moderationLogs.map((action: any, idx: number) => (
-            <div
-              key={idx}
-              className="bg-[#23233a] rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between border border-[#29294d] shadow transition-all duration-200 hover:bg-[#252540]"
-            >
-              <div className="flex items-center gap-2">
-                <FiAlertTriangle className="text-orange-400 text-xl" />
-                <div>
-                  <div className="text-white font-semibold">{action.action}</div>
-                  <div className="text-[#b3b3c6] text-sm">
-                    By {action.performed_by}
+          {userData.moderationLogs && userData.moderationLogs.length > 0 ? (
+            userData.moderationLogs.map((action: any, idx: number) => (
+              <div
+                key={idx}
+                className="bg-[#23233a] rounded-xl px-5 py-4 flex flex-col sm:flex-row sm:items-center justify-between border border-[#29294d] shadow transition-all duration-200 hover:bg-[#252540]"
+              >
+                <div className="flex items-center gap-2">
+                  <FiAlertTriangle className="text-orange-400 text-xl" />
+                  <div>
+                    <div className="text-white font-semibold">{action.action}</div>
+                    <div className="text-[#b3b3c6] text-sm">
+                      By {action.performed_by}
+                    </div>
                   </div>
                 </div>
+                <div className="text-[#b3b3c6] text-sm mt-2 sm:mt-0">
+                  {new Date(action.created_at).toLocaleDateString()}
+                </div>
               </div>
-              <div className="text-[#b3b3c6] text-sm mt-2 sm:mt-0">
-                {new Date(action.created_at).toLocaleDateString()}
-              </div>
+            ))
+          ) : (
+            <div className="bg-[#23233a] rounded-xl px-5 py-4 border border-[#29294d] text-center text-[#b3b3c6]">
+              No moderation actions found
             </div>
-          ))}
+          )}
         </div>
       </div>
 
