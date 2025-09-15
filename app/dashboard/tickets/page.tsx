@@ -3,12 +3,13 @@ import { useState, useEffect } from "react";
 import TicketTable from "../../../components/tables/TicketTable";
 
 interface Ticket {
-  id: string;
-  service: string;
-  by: string;
-  against: string;
-  date: string;
-  status: string;
+  id: number;
+  reporter_id: string;
+  reporter_name: string;
+  request_id: number;
+  created_at: string;
+  ticket_id: string;
+  status?: string;
 }
 
 interface ApiResponse<T> {
@@ -28,7 +29,7 @@ export default function Tickets() {
       try {
         setLoading(true);
         setError(null);
-        
+
         const response = await fetch("/api/tickets");
         const data: ApiResponse<Ticket[]> = await response.json();
 
@@ -50,21 +51,36 @@ export default function Tickets() {
 
   const filterTabs = [
     { label: "All Ticket", key: "all", count: tickets.length },
-    { label: "Unresolved", key: "Unresolved", count: tickets.filter(t => t.status === "Unresolved").length },
-    { label: "Resolved", key: "Resolved", count: tickets.filter(t => t.status === "Resolved").length },
+    {
+      label: "Unresolved",
+      key: "ongoing",
+      count: tickets.filter(
+        (t) => (t.status ?? "ongoing").toLowerCase() === "ongoing"
+      ).length,
+    },
+    {
+      label: "Resolved",
+      key: "resolved",
+      count: tickets.filter(
+        (t) => (t.status ?? "ongoing").toLowerCase() === "resolved"
+      ).length,
+    },
   ];
 
   const filteredTickets =
     activeTab === "all"
       ? tickets
-      : tickets.filter((t) => t.status === activeTab);
+      : tickets.filter(
+          (t) => (t.status ?? "ongoing").toLowerCase() === activeTab
+        );
 
-  const toggleStatus = async (id: string) => {
+  const toggleStatus = async (id: number) => {
     try {
       const ticket = tickets.find((t) => t.id === id);
       if (!ticket) return;
 
-      const newStatus = ticket.status === "Resolved" ? "Unresolved" : "Resolved";
+      const current = (ticket.status ?? "ongoing").toLowerCase();
+      const newStatus = current === "resolved" ? "ongoing" : "resolved";
 
       const response = await fetch(`/api/tickets/${id}`, {
         method: "PATCH",
@@ -92,7 +108,9 @@ export default function Tickets() {
   if (loading) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="text-center py-12 text-[#b3b3c6]">Loading tickets...</div>
+        <div className="text-center py-12 text-[#b3b3c6]">
+          Loading tickets...
+        </div>
       </div>
     );
   }
@@ -108,7 +126,9 @@ export default function Tickets() {
   return (
     <div className="max-w-7xl mx-auto">
       <h1 className="text-3xl font-bold text-white mb-2">Tickets</h1>
-      <p className="text-[#b3b3c6] mb-8">Manage support tickets and user inquiries.</p>
+      <p className="text-[#b3b3c6] mb-8">
+        Manage support tickets and user inquiries.
+      </p>
       <div className="flex flex-wrap gap-2 sm:gap-4 mb-8">
         {filterTabs.map((tab) => (
           <button
@@ -128,7 +148,10 @@ export default function Tickets() {
       </div>
       <div className="bg-[#23233a] rounded-lg shadow-lg overflow-hidden">
         <div className="p-6">
-          <TicketTable tickets={filteredTickets} onToggleStatus={toggleStatus} />
+          <TicketTable
+            tickets={filteredTickets}
+            onToggleStatus={toggleStatus}
+          />
         </div>
       </div>
     </div>

@@ -1,36 +1,25 @@
-'use client';
+"use client";
 
-import { useParams, useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useParams, useRouter } from "next/navigation";
+import { useEffect, useState, useCallback } from "react";
 
-interface TicketData {
-  id: string;
-  service: string;
-  serviceDetails?: {
-    title: string;
-    description: string;
-    category: string;
-    tokenReward: number;
-    postedAt: string;
-  } | null;
-  by: string;
-  byId: string;
-  against: string;
-  againstId: string;
-  date: string;
-  updatedDate: string;
-  status: string;
-  activity: string;
-  tokenReward: number;
+interface TicketDetail {
+  id: number;
+  ticket_id: string;
+  reporter_name: string;
+  listing_id: number;
+  listing_title: string;
+  provider_id: string;
+  provider_name: string;
 }
 
-export default function TicketDetail() {
+export default function TicketDetailPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [ticket, setTicket] = useState<TicketData | null>(null);
+  const [ticket, setTicket] = useState<TicketDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [updating, setUpdating] = useState(false);
+  const [updating] = useState(false);
 
   const fetchTicket = useCallback(async () => {
     // Ensure id is a string and exists
@@ -44,13 +33,13 @@ export default function TicketDetail() {
       setLoading(true);
       setError(null);
       const res = await fetch(`/api/tickets/${id}`);
-      
+
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
-      
+
       const json = await res.json();
-      
+
       if (json.status === "success") {
         setTicket(json.data);
       } else {
@@ -69,34 +58,8 @@ export default function TicketDetail() {
     fetchTicket();
   }, [id, fetchTicket]);
 
-  const updateTicketStatus = async (newStatus: string) => {
-    if (!ticket || !id || Array.isArray(id)) return;
-    
-    try {
-      setUpdating(true);
-      const res = await fetch(`/api/tickets/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      });
-      
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      
-      const json = await res.json();
-      if (json.status === "success") {
-        setTicket(json.data);
-      } else {
-        setError(json.message || "Failed to update ticket");
-      }
-    } catch (error) {
-      console.error("Failed to update ticket status:", error);
-      setError("Failed to update ticket status. Please try again.");
-    } finally {
-      setUpdating(false);
-    }
-  };
+  // Note: status update is disabled for this view since the detail endpoint
+  // does not return status values. Enable if API adds status fields.
 
   if (loading) {
     return (
@@ -152,20 +115,12 @@ export default function TicketDetail() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">Ticket Details</h1>
-            <p className="text-[#b3b3c6]">Ticket ID: #{ticket.id}</p>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              Ticket Details
+            </h1>
+            <p className="text-[#b3b3c6]">Ticket ID: {ticket.ticket_id}</p>
           </div>
-          <button
-            className={`px-8 py-3 rounded-lg font-semibold text-lg transition-all duration-200 ${
-              ticket.status === "Resolved" 
-                ? "bg-green-500 hover:bg-green-600 text-white" 
-                : "bg-red-500 hover:bg-red-600 text-white"
-            } ${updating ? 'opacity-50 cursor-not-allowed' : ''}`}
-            onClick={() => updateTicketStatus(ticket.status === "Resolved" ? "Unresolved" : "Resolved")}
-            disabled={updating}
-          >
-            {updating ? "Updating..." : ticket.status}
-          </button>
+          {/* Status controls removed: detail API does not provide status */}
         </div>
 
         {/* Main Content */}
@@ -174,41 +129,24 @@ export default function TicketDetail() {
             {/* Left Column - Ticket Information */}
             <div className="space-y-6">
               <div>
-                <h2 className="text-xl font-bold text-white mb-4">Ticket Information</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Ticket Information
+                </h2>
                 <div className="space-y-4">
                   <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Date Created</label>
-                    <span className="text-white font-medium">{ticket.date}</span>
+                    <label className="text-[#b3b3c6] text-sm mb-1">
+                      Listing ID
+                    </label>
+                    <span className="text-white font-medium">
+                      #{ticket.listing_id}
+                    </span>
                   </div>
-                  
                   <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Last Updated</label>
-                    <span className="text-white font-medium">{ticket.updatedDate}</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Service ID</label>
-                    <span className="text-white font-medium">#{ticket.service}</span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Activity Type</label>
-                    <span className="text-white font-medium capitalize">{ticket.activity}</span>
-                  </div>
-
-                  <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Token Reward</label>
-                    <span className="text-white font-medium">{ticket.tokenReward} tokens</span>
-                  </div>
-                  
-                  <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">Current Status</label>
-                    <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold w-fit ${
-                      ticket.status === "Resolved" 
-                        ? "bg-green-100 text-green-800" 
-                        : "bg-red-100 text-red-800"
-                    }`}>
-                      {ticket.status}
+                    <label className="text-[#b3b3c6] text-sm mb-1">
+                      Listing Title
+                    </label>
+                    <span className="text-white font-medium">
+                      {ticket.listing_title}
                     </span>
                   </div>
                 </div>
@@ -217,71 +155,52 @@ export default function TicketDetail() {
 
             {/* Right Column - Service & Parties */}
             <div className="space-y-6">
-              {/* Service Information */}
-              {ticket.serviceDetails && (
-                <div>
-                  <h2 className="text-xl font-bold text-white mb-4">Service Information</h2>
-                  <div className="bg-[#2a2a45] rounded-lg p-4 space-y-3">
-                    <div>
-                      <label className="text-[#b3b3c6] text-sm">Title</label>
-                      <div className="text-white font-medium">{ticket.serviceDetails.title}</div>
-                    </div>
-                    <div>
-                      <label className="text-[#b3b3c6] text-sm">Category</label>
-                      <div className="text-white font-medium">{ticket.serviceDetails.category}</div>
-                    </div>
-                    <div>
-                      <label className="text-[#b3b3c6] text-sm">Description</label>
-                      <div className="text-white text-sm">{ticket.serviceDetails.description}</div>
-                    </div>
-                    <div>
-                      <label className="text-[#b3b3c6] text-sm">Posted On</label>
-                      <div className="text-white text-sm">{ticket.serviceDetails.postedAt}</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
               {/* Parties Involved */}
               <div>
-                <h2 className="text-xl font-bold text-white mb-4">Parties Involved</h2>
+                <h2 className="text-xl font-bold text-white mb-4">
+                  Parties Involved
+                </h2>
                 <div className="space-y-4">
                   <div className="bg-[#2a2a45] rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <label className="text-[#b3b3c6] text-sm">Requester</label>
-                        <div className="text-white font-medium text-lg">{ticket.by}</div>
-                        <div className="text-[#b3b3c6] text-sm mt-1">Person who requested the service</div>
+                        <label className="text-[#b3b3c6] text-sm">
+                          Reporter
+                        </label>
+                        <div className="text-white font-medium text-lg">
+                          {ticket.reporter_name}
+                        </div>
+                        <div className="text-[#b3b3c6] text-sm mt-1">
+                          Person who requested the service
+                        </div>
                       </div>
-                      <button
-                        className="bg-[#6366f1] hover:bg-[#4f46e5] px-3 py-1 rounded text-white text-sm transition"
-                        onClick={() => {
-                          if (ticket.byId) {
-                            router.push(`/dashboard/users/${ticket.byId}`);
-                          }
-                        }}
-                        disabled={!ticket.byId}
-                      >
-                        View Profile
-                      </button>
+                      {/* Reporter profile link omitted (no reporter_id in payload) */}
                     </div>
                   </div>
-                  
+
                   <div className="bg-[#2a2a45] rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div className="flex-1">
-                        <label className="text-[#b3b3c6] text-sm">Provider</label>
-                        <div className="text-white font-medium text-lg">{ticket.against}</div>
-                        <div className="text-[#b3b3c6] text-sm mt-1">Person who provided the service</div>
+                        <label className="text-[#b3b3c6] text-sm">
+                          Provider
+                        </label>
+                        <div className="text-white font-medium text-lg">
+                          {ticket.provider_name}
+                        </div>
+                        <div className="text-[#b3b3c6] text-sm mt-1">
+                          Person who provided the service
+                        </div>
                       </div>
                       <button
                         className="bg-[#6366f1] hover:bg-[#4f46e5] px-3 py-1 rounded text-white text-sm transition"
                         onClick={() => {
-                          if (ticket.againstId) {
-                            router.push(`/dashboard/users/${ticket.againstId}`);
+                          if (ticket.provider_id) {
+                            router.push(
+                              `/dashboard/users/${ticket.provider_id}`
+                            );
                           }
                         }}
-                        disabled={!ticket.againstId}
+                        disabled={!ticket.provider_id}
                       >
                         View Profile
                       </button>
@@ -292,28 +211,24 @@ export default function TicketDetail() {
             </div>
           </div>
 
-          {/* Actions Section */}
+          {/* Actions Section (optional) */}
           <div className="border-t border-[#2a2a45] mt-8 pt-8">
-            <h2 className="text-xl font-bold text-white mb-4">Moderation Actions</h2>
+            <h2 className="text-xl font-bold text-white mb-4">Actions</h2>
             <div className="flex flex-wrap gap-4">
               <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
-                Contact Requester
+                Contact Reporter
               </button>
               <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
                 Contact Provider
-              </button>
-              <button className="bg-orange-500 hover:bg-orange-600 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
-                Escalate Issue
-              </button>
-              <button className="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
-                Close Ticket
               </button>
             </div>
           </div>
 
           {/* Notes Section */}
           <div className="border-t border-[#2a2a45] mt-8 pt-8">
-            <h2 className="text-xl font-bold text-white mb-4">Moderator Notes</h2>
+            <h2 className="text-xl font-bold text-white mb-4">
+              Moderator Notes
+            </h2>
             <textarea
               className="w-full h-32 bg-[#2a2a45] border border-[#404040] rounded-lg p-4 text-white placeholder-[#b3b3c6] focus:outline-none focus:border-[#6366f1] resize-none"
               placeholder="Add notes about this ticket..."
@@ -329,7 +244,7 @@ export default function TicketDetail() {
           <div className="flex justify-end mt-8 pt-6 border-t border-[#2a2a45]">
             <button
               className="bg-[#6366f1] hover:bg-[#4f46e5] px-8 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg"
-              onClick={() => router.push('/dashboard/tickets')}
+              onClick={() => router.push("/dashboard/tickets")}
             >
               Back to Tickets
             </button>
