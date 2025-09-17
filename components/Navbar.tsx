@@ -1,7 +1,7 @@
 "use client";
-import { FiSearch, FiLogOut, FiUser } from "react-icons/fi";
+import { FiSearch, FiLogOut, FiUser, FiX } from "react-icons/fi";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useUser, useClerk } from "@clerk/nextjs";
 
@@ -12,6 +12,7 @@ const Navbar = () => {
   const [profileImg, setProfileImg] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Try to load the profile image from localStorage (if you save it there in your settings page)
   useEffect(() => {
@@ -26,6 +27,26 @@ const Navbar = () => {
       router.push(`/dashboard/search?q=${encodeURIComponent(searchQuery.trim())}`);
     }
   };
+
+  // Keyboard shortcuts for focusing and clearing search
+  useEffect(() => {
+    const onKeyDown = (ev: KeyboardEvent) => {
+      // Focus search with '/' or Ctrl/Cmd+K
+      if (
+        (!ev.ctrlKey && !ev.metaKey && ev.key === "/") ||
+        ((ev.ctrlKey || ev.metaKey) && (ev.key.toLowerCase() === "k"))
+      ) {
+        ev.preventDefault();
+        searchInputRef.current?.focus();
+      }
+      // Clear search on Escape when focused
+      if (ev.key === "Escape" && document.activeElement === searchInputRef.current) {
+        setSearchQuery("");
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -50,16 +71,33 @@ const Navbar = () => {
     <div className="w-full flex flex-row items-center justify-end gap-2 sm:gap-0 mb-6 relative">
       <div className="flex items-center gap-3 ml-2 flex-shrink-0">
         <form onSubmit={handleSearch} className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <button
+            type="submit"
+            aria-label="Search"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
+            title="Search"
+          >
             <FiSearch size={18} />
-          </span>
+          </button>
           <input
+            ref={searchInputRef}
             type="text"
             placeholder="Search by name, ID, email, or keywords..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#252540] text-white pl-10 pr-4 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
+            className="bg-[#252540] text-white pl-10 pr-10 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              aria-label="Clear search"
+              onClick={() => setSearchQuery("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
+              title="Clear"
+            >
+              <FiX size={16} />
+            </button>
+          )}
         </form>
         
         {/* User Profile Dropdown */}
