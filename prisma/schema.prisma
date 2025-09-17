@@ -14,7 +14,7 @@ model ads_watching_history {
   id        Int      @id(map: "ads_watching_history_pk") @default(autoincrement())
   user_id   String
   date_time DateTime @db.Timestamptz(6)
-  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ads_watching_history_users_fk")
+  users     users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ads_watching_history_users_fk")
 }
 
 model notifications {
@@ -26,7 +26,7 @@ model notifications {
   event_id                                     BigInt
   notification_events                          events  @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_notification_events_fk")
   users_notifications_action_user_idTousers    users   @relation("notifications_action_user_idTousers", fields: [action_user_id], references: [id], onDelete: Cascade, map: "notifications_users_action_fk")
-  users_notifications_recipient_user_idTousers users   @relation("notifications_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "notifications_users_recipient_fk")
+  users_notifications_recipient_user_idTousers users   @relation("notifications_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_users_recipient_fk")
 }
 
 model payments {
@@ -38,7 +38,7 @@ model payments {
   created_at         DateTime         @db.Timestamptz(6)
   updated_at         DateTime         @db.Timestamptz(6)
   service_requests   service_requests @relation(fields: [service_request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_service_requests_fk")
-  users              users            @relation(fields: [payer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "payments_users_fk")
+  users              users            @relation(fields: [payer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_users_fk")
 }
 
 model reviews {
@@ -49,9 +49,9 @@ model reviews {
   rating                           Int
   comment                          String?
   date_time                        DateTime         @db.Timestamptz(6)
-  service_requests                 service_requests @relation(fields: [request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_service_requests_fk")
-  users_reviews_reviewer_idTousers users            @relation("reviews_reviewer_idTousers", fields: [reviewer_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_users_fk")
-  users_reviews_reviewee_idTousers users            @relation("reviews_reviewee_idTousers", fields: [reviewee_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reviews_users_fk_1")
+  service_requests                 service_requests @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_service_requests_fk")
+  users_reviews_reviewer_idTousers users            @relation("reviews_reviewer_idTousers", fields: [reviewer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk")
+  users_reviews_reviewee_idTousers users            @relation("reviews_reviewee_idTousers", fields: [reviewee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk_1")
 }
 
 model rewards {
@@ -104,8 +104,8 @@ model service_requests {
   request_reports                            request_reports[]
   reviews                                    reviews?
   service_request_completion                 service_request_completion[]
-  users_service_requests_provider_idTousers  users                        @relation("service_requests_provider_idTousers", fields: [provider_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_requests_users_fk")
-  users_service_requests_requester_idTousers users                        @relation("service_requests_requester_idTousers", fields: [requester_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "service_requests_users_fk_1")
+  users_service_requests_provider_idTousers  users                        @relation("service_requests_provider_idTousers", fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk")
+  users_service_requests_requester_idTousers users                        @relation("service_requests_requester_idTousers", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk_1")
 
   @@index([id], map: "idx_service_requests_id")
   @@index([listing_id], map: "idx_service_requests_listing_id")
@@ -119,7 +119,7 @@ model transactions {
   type       String
   amount     Int
   created_at DateTime @default(now()) @db.Timestamptz(6)
-  users      users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "transactions_users_fk")
+  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "transactions_users_fk")
 }
 
 model users {
@@ -160,7 +160,7 @@ model reports {
   report_reason     String?
   status            String
   additional_detail String?
-  service_listings  service_listings @relation(fields: [listing_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "reports_service_listings_fk_1")
+  service_listings  service_listings @relation(fields: [listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reports_service_listings_fk_1")
   users             users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
 
   @@unique([reporter_id, listing_id], map: "reports_unique")
@@ -182,7 +182,7 @@ model ratings {
   user_id       String @id(map: "ratings_pk")
   total_ratings Int
   rating_count  Int
-  ratings       users  @relation("ratingsToratings", fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "ratings_ratings_fk")
+  ratings       users  @relation("ratingsToratings", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ratings_ratings_fk")
 }
 
 model coupon_codes {

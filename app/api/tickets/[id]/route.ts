@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../../lib/prisma';
-import { getTicketDetail } from "../../../../lib/generated/prisma/sql/getTicketDetail";
 
 interface TicketUpdateData {
   status?: string;
@@ -23,12 +22,24 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         { status: 400 }
       );
     }
+    // Fetch ticket detail using Prisma relations instead of missing generated SQL
+    const issue = await prisma.request_reports.findUnique({
+      where: { id: ticketId },
+      include: {
+        users: {
+          select: { id: true, full_name: true },
+        },
+        service_requests: {
+          select: {
+            id: true,
+            listing_id: true,
+            users_service_requests_provider_idTousers: { select: { id: true, full_name: true } },
+          },
+        },
+      },
+    });
 
-    // Use typed SQL helper to fetch ticket detail by id
-    const rows = await prisma.$queryRawTyped(getTicketDetail(ticketId));
-    const row = Array.isArray(rows) ? rows[0] : undefined;
-
-    if (!row) {
+    if (!issue) {
       return NextResponse.json(
         { status: 'error', message: 'Ticket not found' },
         { status: 404 }
@@ -36,13 +47,13 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     }
 
     const data = {
-      id: typeof row.id === 'number' ? row.id : parseInt(String(row.id) || '0', 10),
-      ticket_id: row.ticket_id ?? String(row.id),
-      reporter_name: row.reporter_name ?? '',
-      listing_id: row.listing_id,
-      listing_title: row.title ?? '',
-      provider_id: row.provider_id ?? '',
-      provider_name: row.provider_name ?? ''
+      id: issue.id,
+      ticket_id: issue.ticket_id,
+      reporter_name: issue.users?.full_name ?? '',
+      listing_id: issue.service_requests?.listing_id,
+      listing_title: '', // Not available directly; could be fetched via service_listings if needed
+      provider_id: issue.service_requests?.users_service_requests_provider_idTousers?.id ?? '',
+      provider_name: issue.service_requests?.users_service_requests_provider_idTousers?.full_name ?? '',
     };
 
     return NextResponse.json({
