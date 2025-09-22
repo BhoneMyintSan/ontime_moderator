@@ -12,7 +12,7 @@ export async function GET() {
       select: {
         id: true,
         full_name: true,
-        email: true,
+        is_email_signedup: true,
         phone: true,
         status: true,
         address_line_1: true,

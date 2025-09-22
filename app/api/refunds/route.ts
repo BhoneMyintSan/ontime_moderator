@@ -15,7 +15,6 @@ export async function GET() {
     const transformedRefunds = refunds.map((refund) => ({
       id: `RF-${refund.id}`,
       user: refund.users.full_name,
-      email: refund.users.email,
       amount: `${refund.amount_tokens} tickets`,
       status: "Approved", // Since we are fetching only refunded payments, we can consider them as approved refunds.
       date: refund.updated_at.toISOString().split("T")[0],
