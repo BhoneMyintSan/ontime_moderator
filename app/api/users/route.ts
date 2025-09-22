@@ -12,7 +12,6 @@ export async function GET() {
       select: {
         id: true,
         full_name: true,
-        email: true,
         phone: true,
         status: true,
         address_line_1: true,

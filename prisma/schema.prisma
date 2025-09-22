@@ -134,8 +134,9 @@ model users {
   zip_postal_code                                       String
   country                                               String
   joined_at                                             DateTime               @db.Timestamptz(6)
-  email                                                 Boolean
+  is_email_signedup                                     Boolean
   full_name                                             String
+  is_paid                                               Boolean
   ads_watching_history                                  ads_watching_history[]
   notifications_notifications_action_user_idTousers     notifications[]        @relation("notifications_action_user_idTousers")
   notifications_notifications_recipient_user_idTousers  notifications[]        @relation("notifications_recipient_user_idTousers")

@@ -19,7 +19,6 @@ const Sidebar = () => {
   const links = [
     { name: "Ticket", href: "/dashboard/tickets", icon: <FiGrid /> },
     { name: "Reports", href: "/dashboard/reports", icon: <FiFileText /> },
-    { name: "Volunteer ships", href: "/dashboard/volunteerships", icon: <FiUserCheck /> },
     { name: "Users", href: "/dashboard/users", icon: <FiUsers /> },
     { name: "Refund", href: "/dashboard/refund", icon: <FiFileText /> },
     { name: "Settings", href: "/dashboard/settings", icon: <FiSettings /> },
