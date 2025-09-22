@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
-import { getAllTickets } from "../../../lib/generated/prisma/sql/getAllTickets";
+import { getAllTickets } from "../../../lib/generated/prisma/sql/getAllTickets.js";
 
 interface TicketData {
   id:number;

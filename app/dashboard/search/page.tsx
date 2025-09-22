@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import { FiSearch, FiUser, FiFileText, FiDollarSign, FiAlertTriangle } from "react-icons/fi";
 import Link from "next/link";
@@ -29,52 +29,60 @@ function SearchContent() {
   const performSearch = async (searchQuery: string) => {
     setLoading(true);
     try {
-      // Simulate search across different data types
-      // In a real app, this would call your search API
-      const mockResults: SearchResult[] = [
-        {
-          id: "1",
-          type: "user",
-          title: "John Doe",
-          description: "Active user - john.doe@email.com",
-          status: "Active",
-          date: "2024-01-15"
-        },
-        {
-          id: "2",
-          type: "ticket",
-          title: "Payment Issue #1234",
-          description: "User reported payment processing error",
-          status: "Open",
-          date: "2024-01-14"
-        },
-        {
-          id: "3",
-          type: "report",
-          title: "Service Quality Report",
-          description: "Report about service provider behavior",
-          status: "Unresolved",
-          date: "2024-01-13"
-        },
-        {
-          id: "4",
-          type: "refund",
-          title: "Refund Request #5678",
-          description: "Customer requested refund for cancelled service",
-          status: "Pending",
-          date: "2024-01-12"
-        }
-      ];
+      const q = searchQuery.toLowerCase();
 
-      // Filter results based on search query
-      const filtered = mockResults.filter(result =>
-        result.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        result.description.toLowerCase().includes(searchQuery.toLowerCase())
+      const [usersRes, ticketsRes, reportsRes, refundsRes] = await Promise.all([
+        fetch('/api/users').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
+        fetch('/api/tickets').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
+        fetch('/api/reports').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
+        fetch('/api/refunds').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
+      ]);
+
+      const userResults: SearchResult[] = (usersRes.data || []).map((u: any) => ({
+        id: String(u.id),
+        type: 'user',
+        title: u.full_name || u.id,
+        description: [u.email, u.phone].filter(Boolean).join(' • '),
+        status: u.status,
+        date: u.joined_at ? new Date(u.joined_at).toISOString() : undefined,
+      }));
+
+      const ticketResults: SearchResult[] = (ticketsRes.data || []).map((t: any) => ({
+        id: String(t.id ?? t.ticket_id ?? t.request_id),
+        type: 'ticket',
+        title: `Ticket #${t.ticket_id ?? t.id}`,
+        description: [t.reporter_name && `Reporter: ${t.reporter_name}`, t.request_id && `Request: ${t.request_id}`].filter(Boolean).join(' • '),
+        status: t.status ? String(t.status).charAt(0).toUpperCase() + String(t.status).slice(1) : undefined,
+        date: t.created_at,
+      }));
+
+      const reportResults: SearchResult[] = (reportsRes.data || []).map((r: any) => ({
+        id: String(r.id),
+        type: 'report',
+        title: `Report #${r.id}`,
+        description: [r.report_reason && `Reason: ${r.report_reason}`, r.reporter_name && `Reporter: ${r.reporter_name}`].filter(Boolean).join(' • '),
+        status: r.status,
+        date: r.datetime,
+      }));
+
+      const refundResults: SearchResult[] = (refundsRes.data || []).map((rf: any) => ({
+        id: String(rf.id).replace(/^RF-/, ''),
+        type: 'refund',
+        title: `Refund ${rf.id}`,
+        description: [rf.user && `User: ${rf.user}`, rf.email, rf.amount && `Amount: ${rf.amount}`].filter(Boolean).join(' • '),
+        status: rf.status,
+        date: rf.date,
+      }));
+
+      const all = [...userResults, ...ticketResults, ...reportResults, ...refundResults];
+      const filtered = all.filter(item =>
+        [item.title, item.description].filter(Boolean).some(s => s!.toLowerCase().includes(q))
       );
 
       setResults(filtered);
     } catch (error) {
       console.error("Search error:", error);
+      setResults([]);
     } finally {
       setLoading(false);
     }

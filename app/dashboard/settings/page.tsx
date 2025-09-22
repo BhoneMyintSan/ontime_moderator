@@ -9,6 +9,8 @@ export default function Settings() {
   const [notify, setNotify] = useState(true);
   const [language, setLanguage] = useState("English (US)");
   const [timezone, setTimezone] = useState("Pacific Time (PT)");
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState<{ firstName: string; lastName: string; email: string; bio: string; profileImg: string } | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -81,11 +83,30 @@ export default function Settings() {
       
       setSaveMessage("Settings saved successfully!");
       setTimeout(() => setSaveMessage(""), 3000);
+      setIsEditing(false);
+      setDraft(null);
     } catch (error) {
       setSaveMessage("Failed to save settings. Please try again.");
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const startEditing = () => {
+    setDraft({ firstName, lastName, email, bio, profileImg });
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    if (draft) {
+      setFirstName(draft.firstName);
+      setLastName(draft.lastName);
+      setEmail(draft.email);
+      setBio(draft.bio);
+      setProfileImg(draft.profileImg);
+    }
+    setIsEditing(false);
+    setDraft(null);
   };
 
   return (
@@ -127,16 +148,18 @@ export default function Settings() {
                 />
                 <div className="flex gap-3">
                   <button
-                    className="bg-[#6366f1] hover:bg-[#4f46e5] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+                    className={`px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base ${isEditing ? 'bg-[#6366f1] hover:bg-[#4f46e5]' : 'bg-[#2a2a4a] cursor-not-allowed'}`}
                     onClick={handlePhotoClick}
                     type="button"
+                    disabled={!isEditing}
                   >
                     Upload New Photo
                   </button>
                   <button
-                    className="bg-[#23233a] border border-[#444] px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base"
+                    className={`border px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base ${isEditing ? 'bg-[#23233a] border-[#444] hover:bg-[#252540]' : 'bg-[#2a2a4a] border-[#3a3a5a] cursor-not-allowed'}`}
                     onClick={handleRemovePhoto}
                     type="button"
+                    disabled={!isEditing}
                   >
                     Remove
                   </button>
@@ -146,50 +169,75 @@ export default function Settings() {
                 <div>
                   <label className="block text-[#b3b3c6] mb-1">First Name</label>
                   <input
-                    className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2"
+                    className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
+                    disabled={!isEditing}
                   />
                 </div>
                 <div>
                   <label className="block text-[#b3b3c6] mb-1">Last Name</label>
                   <input
-                    className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2"
+                    className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
+                    disabled={!isEditing}
                   />
                 </div>
               </div>
               <div className="mb-4">
                 <label className="block text-[#b3b3c6] mb-1">Email</label>
                 <input
-                  className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2"
+                  className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
+                  disabled={!isEditing}
                 />
               </div>
               <div className="mb-6">
                 <label className="block text-[#b3b3c6] mb-1">Bio</label>
                 <textarea
-                  className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2"
+                  className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 ${!isEditing ? 'opacity-70' : ''}`}
                   rows={2}
                   style={{ minHeight: "48px", maxHeight: "160px" }}
                   placeholder="Write a short bio..."
                   value={bio}
                   onChange={e => setBio(e.target.value)}
+                  disabled={!isEditing}
                 />
               </div>
               
-              {/* Save Button */}
+              {/* Edit / Save / Cancel Buttons */}
               <div className="flex items-center justify-between">
-                <button
-                  onClick={handleSaveSettings}
-                  disabled={isSaving}
-                  className="bg-[#6366f1] hover:bg-[#4f46e5] disabled:bg-[#4b5563] px-6 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2"
-                >
-                  <FiSave size={16} />
-                  {isSaving ? "Saving..." : "Save Changes"}
-                </button>
+                <div className="flex gap-3">
+                  {!isEditing ? (
+                    <button
+                      onClick={startEditing}
+                      type="button"
+                      className="bg-[#23233a] border border-[#444] hover:bg-[#252540] px-6 py-2 rounded-lg text-white font-semibold shadow transition"
+                    >
+                      Edit Details
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        onClick={cancelEditing}
+                        type="button"
+                        className="bg-[#2a2a4a] hover:bg-[#34345a] px-5 py-2 rounded-lg text-white font-semibold shadow transition"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={handleSaveSettings}
+                        disabled={isSaving}
+                        className="bg-[#6366f1] hover:bg-[#4f46e5] disabled:bg-[#4b5563] px-6 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2"
+                      >
+                        <FiSave size={16} />
+                        {isSaving ? "Saving..." : "Save Changes"}
+                      </button>
+                    </>
+                  )}
+                </div>
                 {saveMessage && (
                   <span className={`text-sm ${saveMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
                     {saveMessage}
