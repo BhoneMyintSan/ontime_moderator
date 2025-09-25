@@ -18,6 +18,14 @@ export const metadata: Metadata = {
   description: 'Manage your community, volunteers, and reports efficiently.',
 };
 
+// Ensure mobile responsiveness
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 interface RootLayoutProps {
   children: React.ReactNode;
 }

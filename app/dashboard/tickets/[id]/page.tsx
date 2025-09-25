@@ -110,42 +110,41 @@ export default function TicketDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e] p-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#1a1a2e] p-4 sm:p-6">
+      <div className="max-w-4xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-white mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold text-white leading-snug">
               Ticket Details
             </h1>
-            <p className="text-[#b3b3c6]">Ticket ID: {ticket.ticket_id}</p>
+            <p className="text-[#b3b3c6] text-sm sm:text-base mt-1">Ticket ID: {ticket.ticket_id}</p>
           </div>
-          {/* Status controls removed: detail API does not provide status */}
         </div>
 
         {/* Main Content */}
-        <div className="bg-[#23233a] rounded-2xl shadow-xl p-8">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Left Column - Ticket Information */}
-            <div className="space-y-6">
+        <div className="bg-[#23233a] rounded-2xl shadow-xl p-5 sm:p-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+            {/* Ticket Information */}
+            <div className="space-y-5">
               <div>
-                <h2 className="text-xl font-bold text-white mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">
                   Ticket Information
                 </h2>
-                <div className="space-y-4">
+                <div className="space-y-3">
                   <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">
+                    <label className="text-[#b3b3c6] text-xs sm:text-sm mb-1 tracking-wide">
                       Listing ID
                     </label>
-                    <span className="text-white font-medium">
+                    <span className="text-white font-medium text-base sm:text-lg">
                       #{ticket.listing_id}
                     </span>
                   </div>
                   <div className="flex flex-col">
-                    <label className="text-[#b3b3c6] text-sm mb-1">
+                    <label className="text-[#b3b3c6] text-xs sm:text-sm mb-1 tracking-wide">
                       Listing Title
                     </label>
-                    <span className="text-white font-medium">
+                    <span className="text-white font-medium text-base sm:text-lg break-words">
                       {ticket.listing_title}
                     </span>
                   </div>
@@ -153,56 +152,48 @@ export default function TicketDetailPage() {
               </div>
             </div>
 
-            {/* Right Column - Service & Parties */}
-            <div className="space-y-6">
-              {/* Parties Involved */}
+            {/* Parties Involved */}
+            <div className="space-y-5">
               <div>
-                <h2 className="text-xl font-bold text-white mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-white mb-3">
                   Parties Involved
                 </h2>
                 <div className="space-y-4">
-                  <div className="bg-[#2a2a45] rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <label className="text-[#b3b3c6] text-sm">
-                          Reporter
-                        </label>
-                        <div className="text-white font-medium text-lg">
+                  <div className="bg-[#2a2a45] rounded-lg p-4 sm:p-5">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <label className="text-[#b3b3c6] text-xs sm:text-sm">Reporter</label>
+                        <div className="text-white font-medium text-base sm:text-lg truncate">
                           {ticket.reporter_name}
                         </div>
-                        <div className="text-[#b3b3c6] text-sm mt-1">
+                        <div className="text-[#b3b3c6] text-xs sm:text-sm mt-1">
                           Person who requested the service
                         </div>
                       </div>
-                      {/* Reporter profile link omitted (no reporter_id in payload) */}
                     </div>
                   </div>
 
-                  <div className="bg-[#2a2a45] rounded-lg p-4">
-                    <div className="flex justify-between items-start">
-                      <div className="flex-1">
-                        <label className="text-[#b3b3c6] text-sm">
-                          Provider
-                        </label>
-                        <div className="text-white font-medium text-lg">
+                  <div className="bg-[#2a2a45] rounded-lg p-4 sm:p-5">
+                    <div className="flex justify-between items-start gap-4">
+                      <div className="flex-1 min-w-0">
+                        <label className="text-[#b3b3c6] text-xs sm:text-sm">Provider</label>
+                        <div className="text-white font-medium text-base sm:text-lg truncate">
                           {ticket.provider_name}
                         </div>
-                        <div className="text-[#b3b3c6] text-sm mt-1">
+                        <div className="text-[#b3b3c6] text-xs sm:text-sm mt-1">
                           Person who provided the service
                         </div>
                       </div>
                       <button
-                        className="bg-[#6366f1] hover:bg-[#4f46e5] px-3 py-1 rounded text-white text-sm transition"
+                        className="bg-[#6366f1] hover:bg-[#4f46e5] px-3 py-1 rounded text-white text-xs sm:text-sm transition disabled:opacity-40 disabled:cursor-not-allowed"
                         onClick={() => {
                           if (ticket.provider_id) {
-                            router.push(
-                              `/dashboard/users/${ticket.provider_id}`
-                            );
+                            router.push(`/dashboard/users/${ticket.provider_id}`);
                           }
                         }}
                         disabled={!ticket.provider_id}
                       >
-                        View Profile
+                        View
                       </button>
                     </div>
                   </div>
@@ -211,39 +202,49 @@ export default function TicketDetailPage() {
             </div>
           </div>
 
-          {/* Actions Section (optional) */}
-          <div className="border-t border-[#2a2a45] mt-8 pt-8">
-            <h2 className="text-xl font-bold text-white mb-4">Actions</h2>
-            <div className="flex flex-wrap gap-4">
-              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
+          {/* Actions - collapsible on mobile */}
+          <details className="mt-8 border-t border-[#2a2a45] pt-6 md:open" open>
+            <summary className="md:hidden cursor-pointer text-white font-semibold text-sm mb-4 list-none flex items-center justify-between">
+              <span>Actions</span>
+              <span className="text-xs text-[#b3b3c6]">Tap to toggle</span>
+            </summary>
+            <div className="hidden md:block mb-4">
+              <h2 className="text-lg sm:text-xl font-semibold text-white">Actions</h2>
+            </div>
+            <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
+              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-5 py-2 sm:px-6 sm:py-3 rounded-lg text-white text-sm sm:text-base font-medium transition shadow">
                 Contact Reporter
               </button>
-              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg">
+              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-5 py-2 sm:px-6 sm:py-3 rounded-lg text-white text-sm sm:text-base font-medium transition shadow">
                 Contact Provider
               </button>
             </div>
-          </div>
+          </details>
 
-          {/* Notes Section */}
-          <div className="border-t border-[#2a2a45] mt-8 pt-8">
-            <h2 className="text-xl font-bold text-white mb-4">
-              Moderator Notes
-            </h2>
-            <textarea
-              className="w-full h-32 bg-[#2a2a45] border border-[#404040] rounded-lg p-4 text-white placeholder-[#b3b3c6] focus:outline-none focus:border-[#6366f1] resize-none"
-              placeholder="Add notes about this ticket..."
-            ></textarea>
-            <div className="flex justify-end mt-4">
-              <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-2 rounded-lg text-white font-semibold transition-all duration-200">
-                Save Notes
-              </button>
-            </div>
-          </div>
+          {/* Notes - collapsible on mobile */}
+            <details className="mt-8 border-t border-[#2a2a45] pt-6 md:open" open>
+              <summary className="md:hidden cursor-pointer text-white font-semibold text-sm mb-4 list-none flex items-center justify-between">
+                <span>Moderator Notes</span>
+                <span className="text-xs text-[#b3b3c6]">Tap to toggle</span>
+              </summary>
+              <div className="hidden md:block mb-4">
+                <h2 className="text-lg sm:text-xl font-semibold text-white">Moderator Notes</h2>
+              </div>
+              <textarea
+                className="w-full h-32 bg-[#2a2a45] border border-[#404040] rounded-lg p-3 sm:p-4 text-white text-sm sm:text-base placeholder-[#b3b3c6] focus:outline-none focus:border-[#6366f1] resize-none"
+                placeholder="Add notes about this ticket..."
+              ></textarea>
+              <div className="flex justify-end mt-4">
+                <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-5 py-2 rounded-lg text-white text-sm font-medium sm:text-base transition">
+                  Save Notes
+                </button>
+              </div>
+            </details>
 
           {/* Footer */}
           <div className="flex justify-end mt-8 pt-6 border-t border-[#2a2a45]">
             <button
-              className="bg-[#6366f1] hover:bg-[#4f46e5] px-8 py-3 rounded-lg text-white font-semibold transition-all duration-200 shadow-lg"
+              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 sm:px-8 py-2.5 sm:py-3 rounded-lg text-white font-medium sm:font-semibold text-sm sm:text-base transition shadow"
               onClick={() => router.push("/dashboard/tickets")}
             >
               Back to Tickets

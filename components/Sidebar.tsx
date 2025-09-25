@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import Image from 'next/image';
 import { useRouter, usePathname } from "next/navigation";
 import {
   FiGrid,
@@ -61,12 +62,25 @@ const Sidebar = () => {
 
       {/* Desktop Sidebar */}
       <aside className="hidden lg:flex flex-col w-64 h-screen bg-[#1e1e2f] p-6 border-r border-[#29294d] z-40 fixed">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center text-white text-xl font-bold shadow-inner">
-            ⏰
+        <button
+          onClick={() => handleNav('/dashboard')}
+          className="flex items-center gap-3 mb-8 group"
+          aria-label="OnTime dashboard home"
+        >
+          <div className="w-10 h-10 relative rounded-lg overflow-hidden ring-1 ring-white/10 shadow-md group-hover:ring-blue-400 transition">
+            <Image
+              src="/ontime_logo.png"
+              alt="OnTime Logo"
+              fill
+              sizes="40px"
+              priority
+              className="object-contain p-1"
+            />
           </div>
-          <span className="text-xl font-semibold text-white">OnTime</span>
-        </div>
+          <span className="text-xl font-semibold text-white tracking-wide group-hover:text-blue-300 transition">
+            OnTime
+          </span>
+        </button>
         <ul className="flex-1 space-y-2">{renderLinks()}</ul>
       </aside>
 
@@ -91,11 +105,24 @@ const Sidebar = () => {
         >
           <FiX size={22} />
         </button>
-        <div className="flex items-center gap-3 mb-8 mt-2">
-          <div className="bg-blue-500 rounded-full w-10 h-10 flex items-center justify-center text-white text-xl font-bold">
+        <button
+          onClick={() => handleNav('/dashboard')}
+          className="flex items-center gap-3 mb-8 mt-2 group"
+          aria-label="OnTime dashboard home"
+        >
+          <div className="w-10 h-10 relative rounded-lg overflow-hidden ring-1 ring-white/10 shadow-md group-hover:ring-blue-400 transition">
+            <Image
+              src="/ontime_logo.png"
+              alt="OnTime Logo"
+              fill
+              sizes="40px"
+              className="object-contain p-1"
+            />
           </div>
-          <span className="text-xl font-semibold text-white">OnTime</span>
-        </div>
+          <span className="text-xl font-semibold text-white tracking-wide group-hover:text-blue-300 transition">
+            OnTime
+          </span>
+        </button>
         <ul className="space-y-2">{renderLinks()}</ul>
       </aside>
     </>

@@ -73,7 +73,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
       />
 
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <table className="min-w-[650px] w-full table-fixed">
+        <table className="hidden md:table min-w-[650px] w-full table-fixed">
           <colgroup>
             <col style={{ width: "20%" }} />
             <col style={{ width: "20%" }} />
@@ -134,6 +134,30 @@ const TicketTable: React.FC<TicketTableProps> = ({
             )}
           </tbody>
         </table>
+      </div>
+      {/* Mobile (card) layout */}
+      <div className="md:hidden space-y-3">
+        {filteredTickets.map(t => (
+          <div key={t.id} onClick={(e) => handleRowClick(t.id, e)} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 shadow hover:bg-[#252540] transition">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-semibold">Ticket #{t.ticket_id}</span>
+              <button
+                onClick={(e) => { e.stopPropagation(); onToggleStatus(t.id); }}
+                className={`px-3 py-1 rounded-full text-xs font-semibold focus:outline-none transition ${(t.status ?? 'ongoing').toLowerCase() === 'resolved' ? 'bg-green-500 text-white' : 'bg-yellow-500 text-white'}`}
+              >
+                {(t.status ?? 'ongoing').toLowerCase() === 'resolved' ? 'Resolved' : 'Ongoing'}
+              </button>
+            </div>
+            <div className="text-[#b3b3c6] text-sm flex flex-wrap gap-x-4 gap-y-1">
+              <span><span className="text-[#8b8ba3]">Request:</span> {t.request_id}</span>
+              <span><span className="text-[#8b8ba3]">Reporter:</span> {t.reporter_name}</span>
+              <span><span className="text-[#8b8ba3]">Date:</span> {new Date(t.created_at).toISOString().split('T')[0]}</span>
+            </div>
+          </div>
+        ))}
+        {filteredTickets.length === 0 && (
+          <div className="text-center py-8 text-[#b3b3c6] text-sm border border-dashed border-[#29294d] rounded-lg">No tickets found.</div>
+        )}
       </div>
     </div>
   );

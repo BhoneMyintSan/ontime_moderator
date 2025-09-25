@@ -81,7 +81,7 @@ export default function UserTable({
         filterOptions={filterOptions}
       />
       
-      <table className="min-w-full text-sm text-white">
+  <table className="hidden md:table min-w-full text-sm text-white">
         <thead className="bg-[#1c1c2e] text-gray-400 uppercase text-xs">
           <tr>
             <th className="px-4 py-3 text-left">Name (ID)</th>
@@ -117,6 +117,27 @@ export default function UserTable({
           )}
         </tbody>
       </table>
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3 mt-4">
+        {filteredUsers.map(user => (
+          <div key={user.id} onClick={() => router.push(`/dashboard/users/${user.id}`)} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 hover:bg-[#252540] transition cursor-pointer">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-semibold truncate max-w-[60%]">{user.full_name}</span>
+              <span className="text-xs px-2 py-1 rounded-full bg-[#29294d] text-[#b3b3c6]">{user.status}</span>
+            </div>
+            <div className="text-[#b3b3c6] text-xs flex flex-wrap gap-x-4 gap-y-1">
+              <span>ID: {user.id}</span>
+              {user.phone && <span>📞 {user.phone}</span>}
+              <span>Warnings: {user.warnings}</span>
+            </div>
+          </div>
+        ))}
+        {filteredUsers.length === 0 && (
+          <div className="text-center py-8 text-[#b3b3c6] text-sm border border-dashed border-[#29294d] rounded-lg">
+            {searchQuery || Object.keys(filters).length > 0 ? 'No users match your search criteria.' : 'No users found.'}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

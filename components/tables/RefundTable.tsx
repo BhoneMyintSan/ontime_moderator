@@ -65,7 +65,7 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
       />
       
       <div className="w-full overflow-x-auto rounded-lg">
-        <table className="w-full">
+        <table className="hidden md:table w-full">
           <thead>
             <tr className="text-[#b3b3c6] text-left text-lg">
               <th className="py-4 px-3 sm:px-6 font-semibold">Refund ID</th>
@@ -110,6 +110,29 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
             )}
           </tbody>
         </table>
+      </div>
+      {/* Mobile cards */}
+      <div className="md:hidden space-y-3 mt-4">
+        {paginatedRefunds.map(r => (
+          <div key={r.id} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 hover:bg-[#252540] transition">
+            <div className="flex items-center justify-between">
+              <span className="text-white font-semibold">Refund #{r.id}</span>
+              <span className={`text-xs px-2 py-1 rounded-full text-white ${statusStyle[r.status]}`}>{r.status}</span>
+            </div>
+            <div className="text-[#b3b3c6] text-xs flex flex-wrap gap-x-4 gap-y-1">
+              <span>User: {r.user}</span>
+              <span>Amount: {r.amount}</span>
+              <span>{r.date}</span>
+            </div>
+            <div className="text-[#8b8ba3] text-xs truncate">Reason: {r.reason || 'N/A'}</div>
+            <div className="text-[#6d6d85] text-[10px] break-all">{r.email}</div>
+          </div>
+        ))}
+        {paginatedRefunds.length === 0 && (
+          <div className="text-center py-8 text-[#b3b3c6] text-sm border border-dashed border-[#29294d] rounded-lg">
+            {searchQuery || Object.keys(filters).length > 0 ? 'No refunds match your search criteria.' : 'No refunds found.'}
+          </div>
+        )}
       </div>
       
       <Pagination

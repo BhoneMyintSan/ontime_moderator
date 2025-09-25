@@ -18,6 +18,7 @@ const Navbar = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   interface Suggestion {
     id: string;
@@ -195,15 +196,29 @@ const Navbar = () => {
   return (
     <div className="w-full flex flex-row items-center justify-end gap-2 sm:gap-0 mb-6 relative">
       <div className="flex items-center gap-3 ml-2 flex-shrink-0">
-        <form onSubmit={handleSearch} className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg" onBlur={(e) => {
-          // Delay to allow click events
-          setTimeout(() => {
-            if (!e.currentTarget.contains(document.activeElement)) {
-              setShowSuggestions(false);
-              setActiveIndex(-1);
-            }
-          }, 120);
-        }}>
+        <form
+          ref={formRef}
+          onSubmit={handleSearch}
+          className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg"
+          onBlur={() => {
+            const formEl = formRef.current;
+            // Delay to allow click on suggestion buttons before closing
+            setTimeout(() => {
+              try {
+                if (!formEl) return; // unmounted
+                const active = document.activeElement as HTMLElement | null;
+                if (!active || !formEl.contains(active)) {
+                  setShowSuggestions(false);
+                  setActiveIndex(-1);
+                }
+              } catch {
+                // Fail-safe: close suggestions silently
+                setShowSuggestions(false);
+                setActiveIndex(-1);
+              }
+            }, 120);
+          }}
+        >
           <button
             type="submit"
             aria-label="Search"
