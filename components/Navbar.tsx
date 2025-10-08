@@ -1,5 +1,5 @@
 "use client";
-import { FiSearch, FiLogOut, FiUser, FiX } from "react-icons/fi";
+import { Search, X, User, LogOut, Settings } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
@@ -194,72 +194,66 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full flex flex-row items-center justify-end gap-2 sm:gap-0 mb-6 relative">
-      <div className="flex items-center gap-3 ml-2 flex-shrink-0">
+    <div className="w-full flex flex-row items-center justify-end gap-4 mb-6 relative">
+      <div className="flex items-center gap-4 flex-shrink-0">
         <form
           ref={formRef}
           onSubmit={handleSearch}
-          className="relative min-w-0 max-w-xs xs:max-w-sm sm:max-w-md lg:max-w-lg"
+          className="relative w-full max-w-md"
           onBlur={() => {
             const formEl = formRef.current;
-            // Delay to allow click on suggestion buttons before closing
             setTimeout(() => {
               try {
-                if (!formEl) return; // unmounted
+                if (!formEl) return;
                 const active = document.activeElement as HTMLElement | null;
                 if (!active || !formEl.contains(active)) {
                   setShowSuggestions(false);
                   setActiveIndex(-1);
                 }
               } catch {
-                // Fail-safe: close suggestions silently
                 setShowSuggestions(false);
                 setActiveIndex(-1);
               }
             }, 120);
           }}
         >
-          <button
-            type="submit"
-            aria-label="Search"
-            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
-            title="Search"
-          >
-            <FiSearch size={18} />
-          </button>
-          <input
-            ref={searchInputRef}
-            type="text"
-            placeholder="Search by name, ID, email, or keywords..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="bg-[#252540] text-white pl-10 pr-10 py-2 rounded-md w-full focus:outline-none focus:ring-2 focus:ring-blue-600 text-sm sm:text-base"
-            onFocus={() => {
-              if (searchQuery.trim()) {
-                if (!allDataLoaded) loadAllData();
-                setSuggestions(buildSuggestions(searchQuery));
-                setShowSuggestions(true);
-              }
-            }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              aria-label="Clear search"
-              onClick={() => setSearchQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white focus:outline-none"
-              title="Clear"
-            >
-              <FiX size={16} />
-            </button>
-          )}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#6d6d85]" />
+            <input
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search users, tickets, reports..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="bg-[#1f1f33] text-[#e0e0e0] placeholder:text-[#6d6d85] pl-10 pr-10 py-2.5 rounded-xl w-full border border-[#29294d] focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all duration-300"
+              onFocus={() => {
+                if (searchQuery.trim()) {
+                  if (!allDataLoaded) loadAllData();
+                  setSuggestions(buildSuggestions(searchQuery));
+                  setShowSuggestions(true);
+                }
+              }}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                aria-label="Clear search"
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#6d6d85] hover:text-white transition-colors"
+                title="Clear"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+          
           {showSuggestions && (suggestions.length > 0 || loadingSuggestions) && (
             <ul
               role="listbox"
-              className="absolute mt-2 left-0 w-full max-h-80 overflow-auto rounded-md bg-[#1d1d31] border border-[#29294d] shadow-xl z-50 text-sm divide-y divide-[#29294d]"
+              className="absolute mt-2 left-0 w-full max-h-96 overflow-auto rounded-xl bg-[#1f1f33] border border-[#29294d] shadow-2xl z-[60] text-sm"
             >
               {loadingSuggestions && (
-                <li className="px-4 py-3 text-[#b3b3c6]">Loading...</li>
+                <li className="px-4 py-3 text-[#9ca3af]">Loading suggestions...</li>
               )}
               {!loadingSuggestions && suggestions.map((s, idx) => (
                 <li key={`${s.type}-${s.id}`}>
@@ -273,23 +267,31 @@ const Navbar = () => {
                       router.push(s.route);
                       setShowSuggestions(false);
                     }}
-                    className={`w-full text-left px-4 py-2 flex flex-col gap-0.5 hover:bg-[#252540] transition ${idx === activeIndex ? 'bg-[#252540]' : ''}`}
+                    className={`w-full text-left px-4 py-3 flex flex-col gap-1 transition-colors border-b border-[#29294d] last:border-0 ${idx === activeIndex ? 'bg-[#252540]' : 'hover:bg-[#252540]/50'}`}
                   >
                     <span className="flex items-center gap-2">
-                      <span className="uppercase text-[10px] tracking-wide px-1.5 py-0.5 rounded bg-[#29294d] text-[#b3b3c6]">{s.type}</span>
+                      <span className={`uppercase text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-md ${
+                        s.type === 'user' ? 'bg-purple-500/20 text-purple-300' :
+                        s.type === 'ticket' ? 'bg-blue-500/20 text-blue-300' :
+                        s.type === 'report' ? 'bg-red-500/20 text-red-300' :
+                        'bg-emerald-500/20 text-emerald-300'
+                      }`}>{s.type}</span>
                       <span className="text-white font-medium truncate">{s.title}</span>
                     </span>
                     {s.description && (
-                      <span className="text-[#8b8ba3] text-xs truncate">{s.description}</span>
+                      <span className="text-[#9ca3af] text-xs truncate ml-1">{s.description}</span>
                     )}
                   </button>
                 </li>
               ))}
               {!loadingSuggestions && suggestions.length === 0 && (
-                <li className="px-4 py-3 text-[#b3b3c6]">No matches</li>
+                <li className="px-4 py-3 text-[#9ca3af] text-center">No matches found</li>
               )}
               {!loadingSuggestions && suggestions.length > 0 && (
-                <li className="px-4 py-2 text-[10px] uppercase tracking-wide text-[#555575] bg-[#1a1a29]">Enter to open • Esc to close</li>
+                <li className="px-4 py-2 text-[10px] uppercase tracking-wide text-[#6d6d85] bg-[#1a1a29] border-t border-[#29294d]">
+                  <kbd className="px-1.5 py-0.5 bg-[#252540] rounded text-[9px] mr-1">Enter</kbd> to open • 
+                  <kbd className="px-1.5 py-0.5 bg-[#252540] rounded text-[9px] mx-1">Esc</kbd> to close
+                </li>
               )}
             </ul>
           )}
@@ -297,8 +299,8 @@ const Navbar = () => {
         
         {/* User Profile Dropdown */}
         <div className="relative">
-          <div
-            className="relative ml-4 w-10 h-10 rounded-full border-2 border-blue-600 cursor-pointer overflow-hidden bg-[#18182c] flex items-center justify-center hover:ring-2 hover:ring-purple-500 transition"
+          <button
+            className="relative w-10 h-10 rounded-xl border-2 border-[#29294d] cursor-pointer overflow-hidden bg-gradient-to-br from-[#252540] to-[#1f1f33] flex items-center justify-center hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300"
             onClick={() => setShowDropdown(!showDropdown)}
             title={user?.fullName || "User profile"}
           >
@@ -308,39 +310,60 @@ const Navbar = () => {
                 alt="profile"
                 fill
                 sizes="40px"
-                className="object-cover rounded-full"
+                className="object-cover"
               />
             ) : (
-              <span className="text-[#b3b3c6] text-lg font-bold select-none">
+              <span className="text-white text-sm font-bold select-none">
                 {user?.firstName?.charAt(0) || user?.emailAddresses?.[0]?.emailAddress?.charAt(0)?.toUpperCase() || "U"}
               </span>
             )}
-          </div>
+          </button>
           
           {/* Dropdown Menu */}
           {showDropdown && (
-            <div className="absolute right-0 mt-2 w-64 bg-[#23233a] rounded-lg shadow-xl border border-[#29294d] z-50">
-              <div className="p-4 border-b border-[#29294d]">
-                <p className="text-white font-semibold">{user?.fullName || "User"}</p>
-                <p className="text-[#b3b3c6] text-sm">{user?.emailAddresses?.[0]?.emailAddress}</p>
+            <div className="absolute right-0 mt-2 w-72 bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl shadow-2xl border border-[#29294d] z-[60] overflow-hidden">
+              <div className="p-5 border-b border-[#29294d] bg-[#1f1f33]/50">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center overflow-hidden border border-[#29294d]">
+                    {profileImg || user?.imageUrl ? (
+                      <Image
+                        src={profileImg || user?.imageUrl || ""}
+                        alt="profile"
+                        width={48}
+                        height={48}
+                        className="object-cover w-full h-full"
+                      />
+                    ) : (
+                      <User className="w-6 h-6 text-indigo-400" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-white font-bold text-base truncate">{user?.fullName || "User"}</p>
+                    <p className="text-[#9ca3af] text-xs truncate">{user?.emailAddresses?.[0]?.emailAddress}</p>
+                  </div>
+                </div>
               </div>
-              <div className="py-2">
+              <div className="p-2">
                 <button
                   onClick={() => {
                     setShowDropdown(false);
                     router.push("/dashboard/settings");
                   }}
-                  className="w-full px-4 py-2 text-left text-white hover:bg-[#252540] transition flex items-center gap-3"
+                  className="w-full px-4 py-3 text-left text-[#e0e0e0] hover:bg-[#252540] rounded-xl transition-all duration-300 flex items-center gap-3 group"
                 >
-                  <FiUser size={16} />
-                  Profile Settings
+                  <div className="w-8 h-8 rounded-lg bg-indigo-500/10 group-hover:bg-indigo-500/20 flex items-center justify-center transition-colors">
+                    <Settings className="w-4 h-4 text-indigo-400" />
+                  </div>
+                  <span className="font-medium">Profile Settings</span>
                 </button>
                 <button 
                   onClick={handleSignOut}
-                  className="w-full px-4 py-2 text-left text-red-400 hover:bg-[#252540] transition flex items-center gap-3"
+                  className="w-full px-4 py-3 text-left text-red-400 hover:bg-red-500/10 rounded-xl transition-all duration-300 flex items-center gap-3 group"
                 >
-                  <FiLogOut size={16} />
-                  Sign Out
+                  <div className="w-8 h-8 rounded-lg bg-red-500/10 group-hover:bg-red-500/20 flex items-center justify-center transition-colors">
+                    <LogOut className="w-4 h-4 text-red-400" />
+                  </div>
+                  <span className="font-medium">Sign Out</span>
                 </button>
               </div>
             </div>
@@ -351,7 +374,7 @@ const Navbar = () => {
       {/* Click outside to close dropdown */}
       {showDropdown && (
         <div
-          className="fixed inset-0 z-40"
+          className="fixed inset-0 z-[55]"
           onClick={() => setShowDropdown(false)}
         />
       )}

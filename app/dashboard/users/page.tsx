@@ -1,10 +1,25 @@
 "use client";
 import { useState, useEffect } from "react";
 import UserTable from "../../../components/tables/UserTable";
+import { Badge } from "@/components/ui/badge";
+import { Users as UsersIcon, UserCheck, UserX, AlertTriangle } from "lucide-react";
+
+interface UserStats {
+  total: number;
+  active: number;
+  suspended: number;
+  warned: number;
+}
 
 export default function Users() {
   const [totalUsers, setTotalUsers] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<UserStats>({
+    total: 0,
+    active: 0,
+    suspended: 0,
+    warned: 0,
+  });
 
   // Simulate loading state based on UserTable's count update
   useEffect(() => {
@@ -14,27 +29,120 @@ export default function Users() {
   }, [totalUsers]);
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-white mb-8">
-        User Moderation
-      </h1>
+    <div className="min-h-screen bg-[#23233a] p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header Card with Gradient */}
+        <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 sm:p-8 border border-[#29294d] overflow-hidden">
+          {/* Gradient Glow Effect */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative flex items-center gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-500/30">
+              <UsersIcon className="w-7 h-7 sm:w-8 sm:h-8 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">User Moderation</h1>
+              <p className="text-[#e0e0e0] text-sm sm:text-base mt-1">
+                Manage and moderate user accounts across the platform
+              </p>
+            </div>
+          </div>
+        </div>
 
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-4">
-          <span className="bg-[#23233a] text-white px-4 py-2 rounded-lg font-medium shadow">
-            Total Users: {totalUsers}
-          </span>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Total Users */}
+        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">Total Users</p>
+              <p className="text-4xl font-bold text-white mt-2">{stats.total}</p>
+              <p className="text-xs text-[#e0e0e0] mt-1">All registered accounts</p>
+            </div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-blue-500/20 to-blue-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <UsersIcon className="w-7 h-7 text-blue-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Active Users */}
+        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">Active Users</p>
+              <p className="text-4xl font-bold text-green-400 mt-2">{stats.active}</p>
+              <p className="text-xs text-[#e0e0e0] mt-1">
+                {stats.total > 0 ? ((stats.active / stats.total) * 100).toFixed(1) : 0}% of total
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-green-500/20 to-green-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <UserCheck className="w-7 h-7 text-green-400" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#29294d]">
+            <Badge variant="success" className="text-xs px-2 py-1">
+              Good standing
+            </Badge>
+          </div>
+        </div>
+
+        {/* Suspended Users */}
+        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">Suspended</p>
+              <p className="text-4xl font-bold text-red-400 mt-2">{stats.suspended}</p>
+              <p className="text-xs text-[#e0e0e0] mt-1">
+                {stats.total > 0 ? ((stats.suspended / stats.total) * 100).toFixed(1) : 0}% of total
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500/20 to-red-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <UserX className="w-7 h-7 text-red-400" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#29294d]">
+            <Badge variant="destructive" className="text-xs px-2 py-1">
+              {stats.suspended > 0 ? 'Requires attention' : 'All clear'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Warned Users */}
+        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">With Warnings</p>
+              <p className="text-4xl font-bold text-amber-400 mt-2">{stats.warned}</p>
+              <p className="text-xs text-[#e0e0e0] mt-1">
+                {stats.total > 0 ? ((stats.warned / stats.total) * 100).toFixed(1) : 0}% of total
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <AlertTriangle className="w-7 h-7 text-amber-400" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#29294d]">
+            <Badge variant="warning" className="text-xs px-2 py-1">
+              Monitor closely
+            </Badge>
+          </div>
         </div>
       </div>
 
-      <div className="bg-[#23233a] rounded-lg shadow-lg overflow-hidden">
+      {/* Main Table Card */}
+      <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-lg overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-[#b3b3c6]">Loading users...</div>
+          <div className="p-12 text-center">
+            <div className="inline-block w-8 h-8 border-4 border-[#6366f1] border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-[#e0e0e0] mt-4">Loading users...</p>
+          </div>
         ) : (
           <div className="p-6">
-            <UserTable onCountChange={setTotalUsers} />
+            <UserTable onCountChange={setTotalUsers} onStatsChange={setStats} />
           </div>
         )}
+      </div>
       </div>
     </div>
   );

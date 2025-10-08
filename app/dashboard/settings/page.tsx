@@ -2,7 +2,7 @@
 import { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { SignOutButton, SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
-import { FiLogOut, FiSave, FiUser } from "react-icons/fi";
+import { LogOut, Save, User, Settings as SettingsIcon, Bell, Globe, Clock, Camera, Trash2, Edit, X, Check } from "lucide-react";
 
 export default function Settings() {
   const { user } = useUser();
@@ -115,28 +115,51 @@ export default function Settings() {
         <RedirectToSignIn redirectUrl="/login" />
       </SignedOut>
       <SignedIn>
-        <div className="max-w-6xl mx-auto mt-10 px-2 sm:px-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-1">Settings</h1>
-          <p className="text-[#b3b3c6] mb-8">Manage your account and system preferences</p>
-          <div className="flex flex-col lg:flex-row gap-8">
+        <div className="min-h-screen bg-[#23233a] p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto space-y-6">
+            
+            {/* Header Card */}
+            <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 sm:p-8 shadow-xl overflow-hidden">
+              {/* Gradient Glow Effects */}
+              <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-full blur-3xl -z-10"></div>
+              <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-purple-500/20 to-indigo-500/20 rounded-full blur-3xl -z-10"></div>
+
+              <div className="flex items-start justify-between gap-4 relative z-10">
+                <div className="flex items-center gap-4 sm:gap-6">
+                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center flex-shrink-0 shadow-lg shadow-indigo-500/30">
+                    <SettingsIcon className="w-7 h-7 sm:w-8 sm:h-8 text-indigo-400" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-2">Settings</h1>
+                    <p className="text-[#e0e0e0] text-sm sm:text-base">Manage your account and system preferences</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex flex-col lg:flex-row gap-6">
 
             {/* Profile Settings */}
-            <div className="flex-1 bg-[#23233a] rounded-2xl p-4 sm:p-8 mb-8 lg:mb-0">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-6">Profile Settings</h2>
-              <div className="flex flex-col sm:flex-row items-center gap-6 mb-6">
-                <div className="rounded-full w-20 h-20 bg-[#18182c] flex items-center justify-center overflow-hidden border-2 border-[#444]">
+            <div className="flex-1 bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 sm:p-8 shadow-xl">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-lg bg-indigo-500/10 flex items-center justify-center">
+                  <User className="w-5 h-5 text-indigo-400" />
+                </div>
+                <h2 className="text-xl sm:text-2xl font-bold text-white">Profile Settings</h2>
+              </div>
+              
+              <div className="flex flex-col sm:flex-row items-center gap-6 mb-6 p-6 bg-[#1f1f33] rounded-2xl border border-[#29294d]">
+                <div className="rounded-full w-24 h-24 bg-[#252540] flex items-center justify-center overflow-hidden border-2 border-[#29294d] shadow-lg">
                   {profileImg ? (
                     <Image
                       src={profileImg}
                       alt="profile"
-                      width={80}
-                      height={80}
+                      width={96}
+                      height={96}
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-[#444] text-5xl select-none flex items-center justify-center w-full h-full" style={{ lineHeight: "1" }}>
-                      +
-                    </span>
+                    <Camera className="w-10 h-10 text-[#9ca3af]" />
                   )}
                 </div>
                 <input
@@ -146,39 +169,42 @@ export default function Settings() {
                   style={{ display: "none" }}
                   onChange={handlePhotoChange}
                 />
-                <div className="flex gap-3">
+                <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                   <button
-                    className={`px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base ${isEditing ? 'bg-[#6366f1] hover:bg-[#4f46e5]' : 'bg-[#2a2a4a] cursor-not-allowed'}`}
+                    className={`px-5 py-2.5 rounded-xl text-white font-semibold shadow transition-all duration-300 text-sm flex items-center justify-center gap-2 ${isEditing ? 'bg-indigo-500 hover:bg-indigo-600 hover:scale-105 shadow-indigo-500/30' : 'bg-[#2a2a4a] cursor-not-allowed opacity-50'}`}
                     onClick={handlePhotoClick}
                     type="button"
                     disabled={!isEditing}
                   >
-                    Upload New Photo
+                    <Camera className="w-4 h-4" />
+                    Upload Photo
                   </button>
                   <button
-                    className={`border px-4 sm:px-5 py-2 rounded-lg text-white font-semibold shadow transition text-xs sm:text-base ${isEditing ? 'bg-[#23233a] border-[#444] hover:bg-[#252540]' : 'bg-[#2a2a4a] border-[#3a3a5a] cursor-not-allowed'}`}
+                    className={`border px-5 py-2.5 rounded-xl text-white font-semibold shadow transition-all duration-300 text-sm flex items-center justify-center gap-2 ${isEditing ? 'bg-[#1f1f33] border-red-500/50 text-red-400 hover:bg-red-500/10 hover:scale-105' : 'bg-[#2a2a4a] border-[#3a3a5a] cursor-not-allowed opacity-50'}`}
                     onClick={handleRemovePhoto}
                     type="button"
                     disabled={!isEditing}
                   >
+                    <Trash2 className="w-4 h-4" />
                     Remove
                   </button>
                 </div>
               </div>
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-[#b3b3c6] mb-1">First Name</label>
+                  <label className="block text-[#9ca3af] mb-2 text-sm font-medium uppercase tracking-wide">First Name</label>
                   <input
-                    className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
+                    className={`w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
                     disabled={!isEditing}
                   />
                 </div>
                 <div>
-                  <label className="block text-[#b3b3c6] mb-1">Last Name</label>
+                  <label className="block text-[#9ca3af] mb-2 text-sm font-medium uppercase tracking-wide">Last Name</label>
                   <input
-                    className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
+                    className={`w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     disabled={!isEditing}
@@ -186,20 +212,20 @@ export default function Settings() {
                 </div>
               </div>
               <div className="mb-4">
-                <label className="block text-[#b3b3c6] mb-1">Email</label>
+                <label className="block text-[#9ca3af] mb-2 text-sm font-medium uppercase tracking-wide">Email</label>
                 <input
-                  className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 mb-2 ${!isEditing ? 'opacity-70' : ''}`}
+                  className={`w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   disabled={!isEditing}
                 />
               </div>
               <div className="mb-6">
-                <label className="block text-[#b3b3c6] mb-1">Bio</label>
+                <label className="block text-[#9ca3af] mb-2 text-sm font-medium uppercase tracking-wide">Bio</label>
                 <textarea
-                  className={`w-full bg-[#18182c] text-white rounded-lg px-4 py-2 ${!isEditing ? 'opacity-70' : ''}`}
-                  rows={2}
-                  style={{ minHeight: "48px", maxHeight: "160px" }}
+                  className={`w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors ${!isEditing ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  rows={3}
+                  style={{ minHeight: "80px", maxHeight: "160px" }}
                   placeholder="Write a short bio..."
                   value={bio}
                   onChange={e => setBio(e.target.value)}
@@ -208,14 +234,15 @@ export default function Settings() {
               </div>
               
               {/* Edit / Save / Cancel Buttons */}
-              <div className="flex items-center justify-between">
-                <div className="flex gap-3">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 bg-[#1f1f33] rounded-2xl border border-[#29294d]">
+                <div className="flex gap-3 w-full sm:w-auto">
                   {!isEditing ? (
                     <button
                       onClick={startEditing}
                       type="button"
-                      className="bg-[#23233a] border border-[#444] hover:bg-[#252540] px-6 py-2 rounded-lg text-white font-semibold shadow transition"
+                      className="flex-1 sm:flex-none bg-indigo-500 hover:bg-indigo-600 hover:scale-105 px-6 py-3 rounded-xl text-white font-semibold shadow-lg shadow-indigo-500/30 transition-all duration-300 flex items-center justify-center gap-2"
                     >
+                      <Edit className="w-4 h-4" />
                       Edit Details
                     </button>
                   ) : (
@@ -223,101 +250,132 @@ export default function Settings() {
                       <button
                         onClick={cancelEditing}
                         type="button"
-                        className="bg-[#2a2a4a] hover:bg-[#34345a] px-5 py-2 rounded-lg text-white font-semibold shadow transition"
+                        className="flex-1 sm:flex-none bg-[#252540] hover:bg-[#2a2a55] hover:scale-105 px-5 py-3 rounded-xl text-white font-semibold shadow transition-all duration-300 flex items-center justify-center gap-2 border border-[#29294d]"
                       >
+                        <X className="w-4 h-4" />
                         Cancel
                       </button>
                       <button
                         onClick={handleSaveSettings}
                         disabled={isSaving}
-                        className="bg-[#6366f1] hover:bg-[#4f46e5] disabled:bg-[#4b5563] px-6 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2"
+                        className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 hover:scale-105 disabled:bg-[#4b5563] disabled:cursor-not-allowed px-6 py-3 rounded-xl text-white font-semibold shadow-lg shadow-green-500/30 transition-all duration-300 flex items-center justify-center gap-2"
                       >
-                        <FiSave size={16} />
+                        <Save className="w-4 h-4" />
                         {isSaving ? "Saving..." : "Save Changes"}
                       </button>
                     </>
                   )}
                 </div>
                 {saveMessage && (
-                  <span className={`text-sm ${saveMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                  <div className={`flex items-center gap-2 text-sm font-medium ${saveMessage.includes("success") ? "text-green-400" : "text-red-400"}`}>
+                    {saveMessage.includes("success") ? <Check className="w-4 h-4" /> : <X className="w-4 h-4" />}
                     {saveMessage}
-                  </span>
+                  </div>
                 )}
               </div>
             </div>
 
             {/* Preferences */}
-            <div className="w-full lg:w-96 bg-[#23233a] rounded-2xl p-4 sm:p-8 h-fit">
-              <h2 className="text-lg sm:text-xl font-bold text-white mb-4">Preferences</h2>
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-white">Notifications</span>
-                  <button
-                    type="button"
-                    onClick={() => setNotify(!notify)}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                      notify ? "bg-blue-600" : "bg-gray-600"
-                    }`}
-                    aria-pressed={notify}
-                  >
-                    <span
-                      className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform ${
-                        notify ? "translate-x-5" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
+            <div className="w-full lg:w-96 space-y-6">
+              {/* Preferences Card */}
+              <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 sm:p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <SettingsIcon className="w-5 h-5 text-purple-400" />
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold text-white">Preferences</h2>
                 </div>
-                <span className="text-[#b3b3c6] text-sm">Receive Notification</span>
-              </div>
-              <div className="mb-4">
-                <label className="block text-[#b3b3c6] mb-1">Language</label>
-                <select
-                  className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2"
-                  value={language}
-                  onChange={e => setLanguage(e.target.value)}
-                >
-                  <option>English (US)</option>
-                  <option>Thai (TH)</option>
-                  <option>Spanish (ES)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[#b3b3c6] mb-1">Timezone</label>
-                <select
-                  className="w-full bg-[#18182c] text-white rounded-lg px-4 py-2"
-                  value={timezone}
-                  onChange={e => setTimezone(e.target.value)}
-                >
-                  <option>Pacific Time (PT)</option>
-                  <option>Eastern Time (ET)</option>
-                  <option>Central European Time (CET)</option>
-                </select>
-              </div>
-              <div className="mt-8 space-y-4">
-                <div className="border-t border-[#29294d] pt-6">
-                  <h3 className="text-white font-semibold mb-3 flex items-center gap-2">
-                    <FiUser size={16} />
-                    Account Actions
-                  </h3>
-                  <div className="space-y-3">
-                    <div className="bg-[#18182c] p-4 rounded-lg border border-[#29294d]">
-                      <p className="text-[#b3b3c6] text-sm mb-3">
-                        Signed in as <span className="text-white font-medium">{user?.fullName || "User"}</span>
-                      </p>
-                      <SignOutButton redirectUrl="/login">
-                        <button
-                          type="button"
-                          className="bg-red-600 hover:bg-red-700 px-4 py-2 rounded-lg text-white font-semibold shadow transition flex items-center gap-2 text-sm"
-                        >
-                          <FiLogOut size={16} />
-                          Sign Out
-                        </button>
-                      </SignOutButton>
+                
+                <div className="space-y-6">
+                  {/* Notifications */}
+                  <div className="p-4 bg-[#1f1f33] rounded-xl border border-[#29294d]">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                          <Bell className="w-4 h-4 text-blue-400" />
+                        </div>
+                        <span className="font-semibold text-white">Notifications</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setNotify(!notify)}
+                        className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors focus:outline-none shadow-inner ${
+                          notify ? "bg-indigo-500" : "bg-[#252540]"
+                        }`}
+                        aria-pressed={notify}
+                      >
+                        <span
+                          className={`inline-block h-5 w-5 transform rounded-full bg-white shadow-lg transition-transform ${
+                            notify ? "translate-x-6" : "translate-x-1"
+                          }`}
+                        />
+                      </button>
                     </div>
+                    <span className="text-[#9ca3af] text-xs">Receive push notifications</span>
+                  </div>
+
+                  {/* Language */}
+                  <div>
+                    <label className="flex items-center gap-2 text-[#9ca3af] mb-3 text-sm font-medium uppercase tracking-wide">
+                      <Globe className="w-4 h-4" />
+                      Language
+                    </label>
+                    <select
+                      className="w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors"
+                      value={language}
+                      onChange={e => setLanguage(e.target.value)}
+                    >
+                      <option>English (US)</option>
+                      <option>Thai (TH)</option>
+                      <option>Spanish (ES)</option>
+                    </select>
+                  </div>
+
+                  {/* Timezone */}
+                  <div>
+                    <label className="flex items-center gap-2 text-[#9ca3af] mb-3 text-sm font-medium uppercase tracking-wide">
+                      <Clock className="w-4 h-4" />
+                      Timezone
+                    </label>
+                    <select
+                      className="w-full bg-[#1f1f33] text-[#e0e0e0] rounded-xl px-4 py-3 border border-[#29294d] focus:border-indigo-500/50 focus:outline-none transition-colors"
+                      value={timezone}
+                      onChange={e => setTimezone(e.target.value)}
+                    >
+                      <option>Pacific Time (PT)</option>
+                      <option>Eastern Time (ET)</option>
+                      <option>Central European Time (CET)</option>
+                    </select>
                   </div>
                 </div>
               </div>
+
+              {/* Account Actions Card */}
+              <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 sm:p-8 shadow-xl">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
+                    <User className="w-5 h-5 text-red-400" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white">Account Actions</h3>
+                </div>
+                
+                <div className="bg-[#1f1f33] p-5 rounded-xl border border-[#29294d]">
+                  <p className="text-[#9ca3af] text-sm mb-4">
+                    Signed in as <span className="text-white font-semibold">{user?.fullName || "User"}</span>
+                  </p>
+                  <SignOutButton redirectUrl="/login">
+                    <button
+                      type="button"
+                      className="w-full bg-red-500 hover:bg-red-600 hover:scale-105 px-5 py-3 rounded-xl text-white font-semibold shadow-lg shadow-red-500/30 transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign Out
+                    </button>
+                  </SignOutButton>
+                </div>
+              </div>
             </div>
+          </div>
           </div>
         </div>
       </SignedIn>

@@ -2,11 +2,12 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Refund } from "@/lib/types";
 import SearchAndFilter from "../SearchAndFilter";
 import Pagination from "../Pagination";
+import { Search } from "lucide-react";
 
 const statusStyle: { [key: string]: string } = {
-  Approved: "bg-green-600",
-  Pending: "bg-yellow-500",
-  Rejected: "bg-red-600",
+  Approved: "bg-green-500/20 text-green-400 border-green-500/50",
+  Pending: "bg-amber-500/20 text-amber-400 border-amber-500/50",
+  Rejected: "bg-red-500/20 text-red-400 border-red-500/50",
 };
 
 interface RefundTableProps {
@@ -67,44 +68,56 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
       <div className="w-full overflow-x-auto rounded-lg">
         <table className="hidden md:table w-full">
           <thead>
-            <tr className="text-[#b3b3c6] text-left text-lg">
-              <th className="py-4 px-3 sm:px-6 font-semibold">Refund ID</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">User</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Email</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Amount</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Status</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Date</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Reason</th>
+            <tr className="text-[#e0e0e0] text-left text-sm border-b border-[#29294d]">
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Refund ID</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">User</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Email</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Amount</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Status</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Date</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold uppercase tracking-wide">Reason</th>
             </tr>
           </thead>
           <tbody>
             {paginatedRefunds.map((refund) => (
               <tr
                 key={refund.id}
-                className="border-t border-[#29294d] hover:bg-[#252540] transition"
+                className="border-t border-[#29294d] hover:bg-[#252540]/50 transition-colors"
               >
-                <td className="py-3 px-3 sm:px-6">{refund.id}</td>
-                <td className="py-3 px-3 sm:px-6">{refund.user}</td>
-                <td className="py-3 px-3 sm:px-6">{refund.email}</td>
-                <td className="py-3 px-3 sm:px-6">{refund.amount}</td>
-                <td className="py-3 px-3 sm:px-6">
+                <td className="py-4 px-3 sm:px-6 text-[#e0e0e0] font-medium">{refund.id}</td>
+                <td className="py-4 px-3 sm:px-6 text-[#e0e0e0]">{refund.user}</td>
+                <td className="py-4 px-3 sm:px-6 text-[#9ca3af]">{refund.email}</td>
+                <td className="py-4 px-3 sm:px-6 text-emerald-400 font-semibold">{refund.amount}</td>
+                <td className="py-4 px-3 sm:px-6">
                   <span
-                    className={`px-3 py-1 rounded-full text-xs font-semibold text-white ${statusStyle[refund.status]}`}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-semibold border ${statusStyle[refund.status]}`}
                     style={{ minWidth: "7rem", display: "inline-block", textAlign: "center" }}
                   >
                     {refund.status}
                   </span>
                 </td>
-                <td className="py-3 px-3 sm:px-6">{refund.date}</td>
-                <td className="py-3 px-3 sm:px-6">{refund.reason}</td>
+                <td className="py-4 px-3 sm:px-6 text-[#9ca3af]">{refund.date}</td>
+                <td className="py-4 px-3 sm:px-6 text-[#e0e0e0]">{refund.reason}</td>
               </tr>
             ))}
             {paginatedRefunds.length === 0 && (
               <tr>
-                <td colSpan={7} className="text-center py-8 text-[#b3b3c6]">
-                  {searchQuery || Object.keys(filters).length > 0 
-                    ? "No refunds match your search criteria." 
-                    : "No refunds found."}
+                <td colSpan={7} className="text-center py-12">
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="w-16 h-16 rounded-xl bg-[#252540] flex items-center justify-center">
+                      <Search className="w-8 h-8 text-[#9ca3af]" />
+                    </div>
+                    <p className="text-[#e0e0e0] font-medium">
+                      {searchQuery || Object.keys(filters).length > 0 
+                        ? "No refunds match your search criteria" 
+                        : "No refunds found"}
+                    </p>
+                    <p className="text-[#9ca3af] text-sm">
+                      {searchQuery || Object.keys(filters).length > 0 
+                        ? "Try adjusting your search or filters" 
+                        : "Refund requests will appear here"}
+                    </p>
+                  </div>
                 </td>
               </tr>
             )}
@@ -112,25 +125,47 @@ const RefundTable: React.FC<RefundTableProps> = ({ refunds }) => {
         </table>
       </div>
       {/* Mobile cards */}
-      <div className="md:hidden space-y-3 mt-4">
+      <div className="md:hidden space-y-4 mt-4">
         {paginatedRefunds.map(r => (
-          <div key={r.id} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 hover:bg-[#252540] transition">
+          <div key={r.id} className="bg-gradient-to-br from-[#252540] to-[#1f1f33] border border-[#29294d] rounded-2xl p-5 flex flex-col gap-3 hover:scale-[1.02] transition-all duration-300 shadow-lg">
             <div className="flex items-center justify-between">
-              <span className="text-white font-semibold">Refund #{r.id}</span>
-              <span className={`text-xs px-2 py-1 rounded-full text-white ${statusStyle[r.status]}`}>{r.status}</span>
+              <span className="text-white font-bold text-lg">#{r.id}</span>
+              <span className={`text-xs px-3 py-1.5 rounded-lg font-semibold border ${statusStyle[r.status]}`}>{r.status}</span>
             </div>
-            <div className="text-[#b3b3c6] text-xs flex flex-wrap gap-x-4 gap-y-1">
-              <span>User: {r.user}</span>
-              <span>Amount: {r.amount}</span>
-              <span>{r.date}</span>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[#9ca3af] text-sm">User:</span>
+                <span className="text-[#e0e0e0] font-medium">{r.user}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#9ca3af] text-sm">Amount:</span>
+                <span className="text-emerald-400 font-bold">{r.amount}</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#9ca3af] text-sm">Date:</span>
+                <span className="text-[#e0e0e0]">{r.date}</span>
+              </div>
             </div>
-            <div className="text-[#8b8ba3] text-xs truncate">Reason: {r.reason || 'N/A'}</div>
-            <div className="text-[#6d6d85] text-[10px] break-all">{r.email}</div>
+            <div className="pt-3 border-t border-[#29294d]">
+              <p className="text-[#9ca3af] text-xs mb-1">Reason:</p>
+              <p className="text-[#e0e0e0] text-sm">{r.reason || 'N/A'}</p>
+            </div>
+            <div className="pt-2 border-t border-[#29294d]">
+              <p className="text-[#6d6d85] text-xs break-all">{r.email}</p>
+            </div>
           </div>
         ))}
         {paginatedRefunds.length === 0 && (
-          <div className="text-center py-8 text-[#b3b3c6] text-sm border border-dashed border-[#29294d] rounded-lg">
-            {searchQuery || Object.keys(filters).length > 0 ? 'No refunds match your search criteria.' : 'No refunds found.'}
+          <div className="text-center py-12 border-2 border-dashed border-[#29294d] rounded-2xl">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-xl bg-[#252540] flex items-center justify-center">
+              <Search className="w-8 h-8 text-[#9ca3af]" />
+            </div>
+            <p className="text-[#e0e0e0] font-medium mb-1">
+              {searchQuery || Object.keys(filters).length > 0 ? 'No refunds match your criteria' : 'No refunds found'}
+            </p>
+            <p className="text-[#9ca3af] text-sm">
+              {searchQuery || Object.keys(filters).length > 0 ? 'Try adjusting your search or filters' : 'Refund requests will appear here'}
+            </p>
           </div>
         )}
       </div>

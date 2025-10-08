@@ -1,8 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import TicketTable from "../../../components/tables/TicketTable";
+import { Ticket, AlertCircle, CheckCircle } from "lucide-react";
 
-interface Ticket {
+interface IssueTicket {
   id: number;
   reporter_id: string;
   reporter_name: string;
@@ -18,8 +19,8 @@ interface ApiResponse<T> {
   data: T;
 }
 
-export default function Tickets() {
-  const [tickets, setTickets] = useState<Ticket[]>([]);
+export default function IssuesTicket() {
+  const [tickets, setTickets] = useState<IssueTicket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("all");
@@ -31,7 +32,7 @@ export default function Tickets() {
         setError(null);
 
         const response = await fetch("/api/tickets");
-        const data: ApiResponse<Ticket[]> = await response.json();
+        const data: ApiResponse<IssueTicket[]> = await response.json();
 
         if (data.status === "success") {
           setTickets(data.data);
@@ -50,7 +51,7 @@ export default function Tickets() {
   }, []);
 
   const filterTabs = [
-    { label: "All Ticket", key: "all", count: tickets.length },
+    { label: "All Issues", key: "all", count: tickets.length },
     {
       label: "Unresolved",
       key: "ongoing",
@@ -90,7 +91,7 @@ export default function Tickets() {
         body: JSON.stringify({ status: newStatus }),
       });
 
-      const data: ApiResponse<Ticket> = await response.json();
+      const data: ApiResponse<IssueTicket> = await response.json();
 
       if (data.status === "success") {
         setTickets((prev) =>
@@ -107,51 +108,75 @@ export default function Tickets() {
 
   if (loading) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center py-12 text-[#b3b3c6]">
-          Loading tickets...
-        </div>
+      <div className="min-h-screen bg-[#23233a] p-8 flex items-center justify-center">
+        <div className="text-[#e0e0e0] text-lg">Loading issue tickets...</div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center py-12 text-red-400">Error: {error}</div>
+      <div className="min-h-screen bg-[#23233a] p-8">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-[#1f1f33] border border-red-500/30 rounded-2xl p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertCircle className="w-6 h-6 text-red-400" />
+              <h2 className="text-xl font-semibold text-red-400">Error</h2>
+            </div>
+            <p className="text-[#e0e0e0]">{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <h1 className="text-3xl font-bold text-white mb-2">Tickets</h1>
-      <p className="text-[#b3b3c6] mb-8">
-        Manage support tickets and user inquiries.
-      </p>
-      <div className="flex flex-wrap gap-2 sm:gap-4 mb-8">
-        {filterTabs.map((tab) => (
-          <button
-            key={tab.key}
-            onClick={() => setActiveTab(tab.key)}
-            className={`px-4 sm:px-8 py-2 rounded-lg font-medium text-base focus:outline-none transition
-              ${
+    <div className="min-h-screen bg-[#23233a] p-4 sm:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header Card with Gradient */}
+        <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 sm:p-8 mb-6 border border-[#29294d] overflow-hidden">
+          {/* Gradient Glow Effect */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative flex items-center gap-4">
+            <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-500/30">
+              <Ticket className="w-7 h-7 sm:w-8 sm:h-8 text-blue-400" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Issues Ticket</h1>
+              <p className="text-[#e0e0e0] text-sm sm:text-base mt-1">
+                Manage service request issues and user disputes
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Filter Tabs */}
+        <div className="flex flex-wrap gap-3 mb-6">
+          {filterTabs.map((tab) => (
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
+              className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-all ${
                 activeTab === tab.key
-                  ? "bg-blue-600 text-white shadow"
-                  : "bg-[#23233a] text-[#b3b3c6] border border-[#29294d]"
-              }
-            `}
-          >
-            {tab.label} ({tab.count})
-          </button>
-        ))}
-      </div>
-      <div className="bg-[#23233a] rounded-lg shadow-lg overflow-hidden">
-        <div className="p-6">
-          <TicketTable
-            tickets={filteredTickets}
-            onToggleStatus={toggleStatus}
-          />
+                  ? "bg-[#6366f1] text-white shadow-lg shadow-indigo-500/30"
+                  : "bg-[#1f1f33] text-[#e0e0e0] border border-[#29294d] hover:border-[#383862]"
+              }`}
+            >
+              {tab.label} ({tab.count})
+            </button>
+          ))}
+        </div>
+
+        {/* Table */}
+        <div className="bg-[#1f1f33] rounded-2xl shadow-lg border border-[#29294d] overflow-hidden">
+          <div className="p-6">
+            <TicketTable
+              tickets={filteredTickets}
+              onToggleStatus={toggleStatus}
+            />
+          </div>
         </div>
       </div>
     </div>

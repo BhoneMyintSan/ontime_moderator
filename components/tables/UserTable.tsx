@@ -4,10 +4,19 @@ import { useRouter } from "next/navigation";
 import { User } from "@/lib/types";
 import SearchAndFilter from "../SearchAndFilter";
 
+interface UserStats {
+  total: number;
+  active: number;
+  suspended: number;
+  warned: number;
+}
+
 export default function UserTable({
   onCountChange,
+  onStatsChange,
 }: {
   onCountChange?: (n: number) => void;
+  onStatsChange?: (stats: UserStats) => void;
 }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
@@ -27,6 +36,16 @@ export default function UserTable({
           if (onCountChange) {
             onCountChange(json.data.length);
           }
+          // Calculate stats
+          if (onStatsChange) {
+            const stats: UserStats = {
+              total: json.data.length,
+              active: json.data.filter((u: User) => u.status.toLowerCase() === "active").length,
+              suspended: json.data.filter((u: User) => u.status.toLowerCase() === "suspended").length,
+              warned: json.data.filter((u: User) => u.warnings > 0).length,
+            };
+            onStatsChange(stats);
+          }
         } else {
           setError(json.message || "Failed to fetch users");
         }
@@ -39,7 +58,7 @@ export default function UserTable({
     };
 
     loadUsers();
-  }, [onCountChange]);
+  }, [onCountChange, onStatsChange]);
 
   const filterOptions = {
     status: [
@@ -141,4 +160,3 @@ export default function UserTable({
     </div>
   );
 }
-
