@@ -23,13 +23,13 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         { status: 400 }
       );
     }
-    const report = await prisma.reports.findUnique({
+    const report = await prisma.report.findUnique({
       where: { id: reportId },
       include: {
-        users: true, // Reporter information
-        service_listings: {
+        user: true, // Reporter information
+        service_listing: {
           include: {
-            users: true // Posted by user (the person being reported)
+            user: true // Posted by user (the person being reported)
           }
         }
       },
@@ -74,14 +74,14 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
     }
 
     const body = await req.json();
-    const updated = await prisma.reports.update({
+    const updated = await prisma.report.update({
       where: { id: reportId },
       data: body,
       include: {
-        users: true, // Reporter information
-        service_listings: {
+        user: true, // Reporter information
+        service_listing: {
           include: {
-            users: true // Posted by user (the person being reported)
+            user: true // Posted by user (the person being reported)
           }
         }
       },
@@ -119,7 +119,7 @@ export async function DELETE(request: Request, context: { params: Promise<{ id: 
       );
     }
 
-    await prisma.reports.delete({ where: { id: reportId } });
+    await prisma.report.delete({ where: { id: reportId } });
     return NextResponse.json({ status: "success", message: "Report deleted", data: {} });
   } catch (error) {
     console.error("Error in DELETE /api/reports/[id]:", error);

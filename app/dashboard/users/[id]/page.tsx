@@ -55,9 +55,8 @@ export default function UserProfile() {
   const [showWarningConfirm, setShowWarningConfirm] = useState(false);
   const [showBanConfirm, setShowBanConfirm] = useState(false);
 
-  // Make account status interactive
-  const [accountStatus, setAccountStatus] = useState("Active");
-  const statusOptions = ["Active", "Under Review", "Suspended", "Banned"];
+  // Account status is managed from the database (active, suspended, banned)
+  const [accountStatus, setAccountStatus] = useState("active");
 
   useEffect(() => {
     if (userData && userData.status) {
@@ -122,7 +121,15 @@ export default function UserProfile() {
               <div className="flex-1 min-w-0">
                 <h1 className="text-3xl sm:text-4xl font-bold text-white mb-2">{userData.full_name}</h1>
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <Badge variant={userData.status.toLowerCase() === 'active' ? 'success' : userData.status.toLowerCase() === 'suspended' ? 'destructive' : 'secondary'} className="text-sm px-3 py-1">
+                  <Badge 
+                    variant={
+                      userData.status === 'active' ? 'success' : 
+                      userData.status === 'suspended' ? 'warning' : 
+                      userData.status === 'banned' ? 'destructive' : 
+                      'secondary'
+                    } 
+                    className="text-sm px-3 py-1 capitalize"
+                  >
                     {userData.status}
                   </Badge>
                   <span className="text-sm text-[#b3b3c6] flex items-center gap-2">
@@ -242,7 +249,7 @@ export default function UserProfile() {
               </svg>
             </div>
           </div>
-          <span className="text-4xl font-bold text-amber-400">{userData.warnings || 0}</span>
+          <span className="text-4xl font-bold text-amber-400">{userData.warning?.length || 0}</span>
           <p className="text-xs text-[#b3b3c6] mt-1">Active warnings</p>
         </div>
         <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 shadow-xl border border-[#29294d] hover:scale-[1.02] transition-all duration-300">
@@ -421,33 +428,48 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* Moderation Actions */}
-      <div className="bg-[#1f1f33] rounded-xl border border-[#29294d] shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#29294d]">
+      {/* Warnings History */}
+      <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-xl overflow-hidden">
+        <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-amber-500/5 to-red-500/5">
           <h2 className="text-xl font-semibold text-white flex items-center gap-2">
             <FiAlertTriangle className="text-amber-500" />
-            Moderation Actions
+            Warnings History
           </h2>
         </div>
         <div className="p-6 space-y-3">
-          {userData.moderationLogs && userData.moderationLogs.length > 0 ? (
-            userData.moderationLogs.map((action: any, idx: number) => (
+          {userData.warning && userData.warning.length > 0 ? (
+            userData.warning.map((warning: any) => (
               <div
-                key={idx}
+                key={warning.id}
                 className="bg-[#252540] rounded-lg p-4 border border-[#29294d] hover:bg-[#2a2a55] transition-colors"
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                      <FiAlertTriangle className="text-amber-500" />
-                    </div>
-                    <div>
-                      <div className="text-white font-semibold">{action.action}</div>
-                      <div className="text-sm text-[#b3b3c6]">By {action.performed_by}</div>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-start gap-3 mb-2">
+                      <div className={`w-8 h-8 rounded-lg ${warning.severity === 'severe' ? 'bg-red-500/20' : 'bg-amber-500/20'} flex items-center justify-center flex-shrink-0`}>
+                        <FiAlertTriangle className={warning.severity === 'severe' ? 'text-red-400' : 'text-amber-400'} />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-white font-semibold">{warning.reason}</span>
+                          <Badge 
+                            variant={warning.severity === 'severe' ? 'destructive' : 'warning'}
+                            className="text-xs capitalize"
+                          >
+                            {warning.severity}
+                          </Badge>
+                        </div>
+                        {warning.comment && (
+                          <div className="text-sm text-[#b3b3c6] mt-2 leading-relaxed">
+                            {warning.comment}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
-                  <div className="text-sm text-[#b3b3c6]">
-                    {new Date(action.created_at).toLocaleDateString()}
+                  <div className="text-right text-xs text-[#b3b3c6]">
+                    <div>{new Date(warning.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
+                    <div className="opacity-70">#{warning.id}</div>
                   </div>
                 </div>
               </div>
@@ -455,9 +477,10 @@ export default function UserProfile() {
           ) : (
             <div className="text-center py-8 text-[#b3b3c6]">
               <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <p>No moderation actions found</p>
+              <p>No warnings issued</p>
+              <p className="text-xs mt-1">This user has a clean record</p>
             </div>
           )}
         </div>

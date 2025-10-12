@@ -7,7 +7,7 @@ import prisma from "../../../lib/prisma";
  */
 export async function GET() {
   try {
-    const users = await prisma.users.findMany({ 
+    const users = await prisma.user.findMany({ 
       orderBy: { joined_at: "desc" },
       select: {
         id: true,
@@ -51,6 +51,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ status: "error", message: `Missing field: ${k}`, data: null }, { status: 400 });
   }
 
-  const created = await prisma.users.create({ data: body }); // <-- FIXED: use plural 'users'
+  const created = await prisma.user.create({ data: body });
   return NextResponse.json({ status: "success", message: "User created", data: created }, { status: 201 });
 }

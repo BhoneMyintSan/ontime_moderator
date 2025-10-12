@@ -3,18 +3,18 @@ import prisma from "@/lib/prisma";
 
 export async function GET() {
   try {
-    const refunds = await prisma.payments.findMany({
+    const refunds = await prisma.payment.findMany({
       where: {
         status: "refunded",
       },
       include: {
-        users: true, // Include the user who made the payment
+        user: true, // Include the user who made the payment
       },
     });
 
     const transformedRefunds = refunds.map((refund) => ({
       id: `RF-${refund.id}`,
-      user: refund.users.full_name,
+      user: refund.user.full_name,
       amount: `${refund.amount_tokens} tickets`,
       status: "Approved", // Since we are fetching only refunded payments, we can consider them as approved refunds.
       date: refund.updated_at.toISOString().split("T")[0],

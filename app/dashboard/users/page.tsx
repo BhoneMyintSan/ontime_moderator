@@ -2,12 +2,13 @@
 import { useState, useEffect } from "react";
 import UserTable from "../../../components/tables/UserTable";
 import { Badge } from "@/components/ui/badge";
-import { Users as UsersIcon, UserCheck, UserX, AlertTriangle } from "lucide-react";
+import { Users as UsersIcon, UserCheck, UserX, AlertTriangle, Ban } from "lucide-react";
 
 interface UserStats {
   total: number;
   active: number;
   suspended: number;
+  banned: number;
   warned: number;
 }
 
@@ -18,6 +19,7 @@ export default function Users() {
     total: 0,
     active: 0,
     suspended: 0,
+    banned: 0,
     warned: 0,
   });
 
@@ -92,30 +94,9 @@ export default function Users() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">Suspended</p>
-              <p className="text-4xl font-bold text-red-400 mt-2">{stats.suspended}</p>
+              <p className="text-4xl font-bold text-amber-400 mt-2">{stats.suspended}</p>
               <p className="text-xs text-[#e0e0e0] mt-1">
                 {stats.total > 0 ? ((stats.suspended / stats.total) * 100).toFixed(1) : 0}% of total
-              </p>
-            </div>
-            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500/20 to-red-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <UserX className="w-7 h-7 text-red-400" />
-            </div>
-          </div>
-          <div className="mt-3 pt-3 border-t border-[#29294d]">
-            <Badge variant="destructive" className="text-xs px-2 py-1">
-              {stats.suspended > 0 ? 'Requires attention' : 'All clear'}
-            </Badge>
-          </div>
-        </div>
-
-        {/* Warned Users */}
-        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">With Warnings</p>
-              <p className="text-4xl font-bold text-amber-400 mt-2">{stats.warned}</p>
-              <p className="text-xs text-[#e0e0e0] mt-1">
-                {stats.total > 0 ? ((stats.warned / stats.total) * 100).toFixed(1) : 0}% of total
               </p>
             </div>
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
@@ -124,7 +105,28 @@ export default function Users() {
           </div>
           <div className="mt-3 pt-3 border-t border-[#29294d]">
             <Badge variant="warning" className="text-xs px-2 py-1">
-              Monitor closely
+              {stats.suspended > 0 ? 'Requires attention' : 'All clear'}
+            </Badge>
+          </div>
+        </div>
+
+        {/* Banned Users */}
+        <div className="group bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl border border-[#29294d] p-6 shadow-xl hover:shadow-2xl hover:scale-[1.02] transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#9ca3af] uppercase tracking-wide">Banned</p>
+              <p className="text-4xl font-bold text-red-400 mt-2">{stats.banned}</p>
+              <p className="text-xs text-[#e0e0e0] mt-1">
+                {stats.total > 0 ? ((stats.banned / stats.total) * 100).toFixed(1) : 0}% of total
+              </p>
+            </div>
+            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-red-500/20 to-red-500/5 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+              <Ban className="w-7 h-7 text-red-400" />
+            </div>
+          </div>
+          <div className="mt-3 pt-3 border-t border-[#29294d]">
+            <Badge variant="destructive" className="text-xs px-2 py-1">
+              {stats.banned > 0 ? 'Permanently banned' : 'All clear'}
             </Badge>
           </div>
         </div>

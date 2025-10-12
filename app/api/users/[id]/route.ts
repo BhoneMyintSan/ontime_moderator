@@ -15,10 +15,15 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       );
     }
 
-    const user = await prisma.users.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id: params.id },
       include: {
-        reports: true, // Reports made by this user
+        report: true, // Reports made by this user
+        warning: {
+          orderBy: {
+            created_at: 'desc'
+          }
+        }, // Warnings issued to this user
       },
     });
     if (!user) {
@@ -42,7 +47,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
   const params = await context.params;
   try {
     const body = await req.json();
-    const updated = await prisma.users.update({
+    const updated = await prisma.user.update({
       where: { id: params.id },
       data: body,
     });
@@ -62,7 +67,7 @@ export async function PATCH(req: Request, context: { params: Promise<{ id: strin
 export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
   const params = await context.params;
   try {
-    await prisma.users.delete({ where: { id: params.id } });
+    await prisma.user.delete({ where: { id: params.id } });
     return NextResponse.json({ status: "success", message: "User deleted", data: {} });
   } catch (error) {
     console.error("Error deleting user:", error);

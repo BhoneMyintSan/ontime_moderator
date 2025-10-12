@@ -23,17 +23,17 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       );
     }
     // Fetch ticket detail using Prisma relations instead of missing generated SQL
-    const issue = await prisma.request_reports.findUnique({
+    const issue = await prisma.request_report.findUnique({
       where: { id: ticketId },
       include: {
-        users: {
+        user: {
           select: { id: true, full_name: true },
         },
-        service_requests: {
+        service_request: {
           select: {
             id: true,
             listing_id: true,
-            users_service_requests_provider_idTousers: { select: { id: true, full_name: true } },
+            user_service_request_provider_idTouser: { select: { id: true, full_name: true } },
           },
         },
       },
@@ -49,11 +49,11 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const data = {
       id: issue.id,
       ticket_id: issue.ticket_id,
-      reporter_name: issue.users?.full_name ?? '',
-      listing_id: issue.service_requests?.listing_id,
+      reporter_name: issue.user?.full_name ?? '',
+      listing_id: issue.service_request?.listing_id,
       listing_title: '', // Not available directly; could be fetched via service_listings if needed
-      provider_id: issue.service_requests?.users_service_requests_provider_idTousers?.id ?? '',
-      provider_name: issue.service_requests?.users_service_requests_provider_idTousers?.full_name ?? '',
+      provider_id: issue.service_request?.user_service_request_provider_idTouser?.id ?? '',
+      provider_name: issue.service_request?.user_service_request_provider_idTouser?.full_name ?? '',
     };
 
     return NextResponse.json({
@@ -114,20 +114,34 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       );
     }
 
-    const updatedTicket = await prisma.service_requests.update({
+    // First, get the request_report to find the actual service_request ID
+    const requestReport = await prisma.request_report.findUnique({
       where: { id: ticketId },
+      select: { request_id: true }
+    });
+
+    if (!requestReport) {
+      return NextResponse.json(
+        { status: 'error', message: 'Ticket not found' },
+        { status: 404 }
+      );
+    }
+
+    // Update the actual service_request, not the request_report
+    const updatedTicket = await prisma.service_request.update({
+      where: { id: requestReport.request_id },
       data: { 
         status_detail: dbStatus,
         updated_at: new Date()
       },
       include: {
-        users_service_requests_requester_idTousers: {
+        user_service_request_requester_idTouser: {
           select: {
             id: true,
             full_name: true,
           }
         },
-        users_service_requests_provider_idTousers: {
+        user_service_request_provider_idTouser: {
           select: {
             id: true,
             full_name: true,
@@ -136,14 +150,20 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       }
     });
 
+    // Also update the request_report status to match
+    await prisma.request_report.update({
+      where: { id: ticketId },
+      data: { status: uiStatus }
+    });
+
     const transformedTicket = {
       id: updatedTicket.id.toString(),
       service: updatedTicket.listing_id.toString(),
       serviceDetails: null, // We don't need to fetch service details again for update
-      by: updatedTicket.users_service_requests_requester_idTousers.full_name,
-      byId: updatedTicket.users_service_requests_requester_idTousers.id,
-      against: updatedTicket.users_service_requests_provider_idTousers.full_name,
-      againstId: updatedTicket.users_service_requests_provider_idTousers.id,
+      by: updatedTicket.user_service_request_requester_idTouser.full_name,
+      byId: updatedTicket.user_service_request_requester_idTouser.id,
+      against: updatedTicket.user_service_request_provider_idTouser.full_name,
+      againstId: updatedTicket.user_service_request_provider_idTouser.id,
       date: updatedTicket.created_at.toISOString().split('T')[0],
       updatedDate: updatedTicket.updated_at.toISOString().split('T')[0],
       status: uiStatus,

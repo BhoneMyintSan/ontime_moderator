@@ -210,6 +210,17 @@ export default function TicketDetailPage() {
                 <p className="text-[#9ca3af] text-sm mb-1">Role</p>
                 <p className="text-[#e0e0e0]">Person who requested the service</p>
               </div>
+              <button
+                className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={() => {
+                  if (ticket.reporter_id) {
+                    router.push(`/dashboard/users/${ticket.reporter_id}`);
+                  }
+                }}
+                disabled={!ticket.reporter_id}
+              >
+                View Profile
+              </button>
             </div>
           </div>
 
@@ -324,13 +335,31 @@ export default function TicketDetailPage() {
 
         {/* Actions Section */}
         <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d]">
-          <h3 className="text-lg font-semibold text-white mb-4">Moderator Actions</h3>
+          <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
-              Contact Reporter
+            <button 
+              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+              onClick={() => {
+                if (ticket.reporter_id) {
+                  router.push(`/dashboard/users/${ticket.reporter_id}`);
+                }
+              }}
+              disabled={!ticket.reporter_id}
+            >
+              <User className="w-4 h-4" />
+              View Reporter Profile
             </button>
-            <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
-              Contact Provider
+            <button 
+              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
+              onClick={() => {
+                if (ticket.provider_id) {
+                  router.push(`/dashboard/users/${ticket.provider_id}`);
+                }
+              }}
+              disabled={!ticket.provider_id}
+            >
+              <User className="w-4 h-4" />
+              View Provider Profile
             </button>
             <button
               className="bg-[#252540] hover:bg-[#2a2a55] px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 border border-[#29294d]"
