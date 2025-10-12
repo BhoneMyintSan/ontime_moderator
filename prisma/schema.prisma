@@ -14,98 +14,164 @@ model ads_watching_history {
   id        Int      @id(map: "ads_watching_history_pk") @default(autoincrement())
   user_id   String
   date_time DateTime @db.Timestamptz(6)
-  users     users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ads_watching_history_users_fk")
-}
-
-model notifications {
-  id                                           Int     @id(map: "notifications_pk") @default(autoincrement())
-  message                                      String
-  recipient_user_id                            String
-  action_user_id                               String
-  is_read                                      Boolean
-  event_id                                     BigInt
-  notification_events                          events  @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_notification_events_fk")
-  users_notifications_action_user_idTousers    users   @relation("notifications_action_user_idTousers", fields: [action_user_id], references: [id], onDelete: Cascade, map: "notifications_users_action_fk")
-  users_notifications_recipient_user_idTousers users   @relation("notifications_recipient_user_idTousers", fields: [recipient_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_users_recipient_fk")
-}
-
-model payments {
-  id                 Int              @id(map: "payments_pk") @default(autoincrement())
-  service_request_id Int
-  payer_id           String
-  amount_tokens      Int
-  status             payment_status
-  created_at         DateTime         @db.Timestamptz(6)
-  updated_at         DateTime         @db.Timestamptz(6)
-  service_requests   service_requests @relation(fields: [service_request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_service_requests_fk")
-  users              users            @relation(fields: [payer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_users_fk")
-}
-
-model reviews {
-  id                               Int              @id(map: "reviews_pk") @default(autoincrement())
-  request_id                       Int              @unique(map: "reviews_unique")
-  reviewer_id                      String
-  reviewee_id                      String
-  rating                           Int
-  comment                          String?
-  date_time                        DateTime         @db.Timestamptz(6)
-  service_requests                 service_requests @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_service_requests_fk")
-  users_reviews_reviewer_idTousers users            @relation("reviews_reviewer_idTousers", fields: [reviewer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk")
-  users_reviews_reviewee_idTousers users            @relation("reviews_reviewee_idTousers", fields: [reviewee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk_1")
-}
-
-model rewards {
-  id               Int                @id(map: "rewards_pk") @default(autoincrement())
-  title            String
-  description      String
-  cost             Int
-  image_url        String?            @db.VarChar
-  created_date     DateTime           @db.Timestamptz(6)
-  coupon_codes     coupon_codes[]
-  redeemed_rewards redeemed_rewards[]
-}
-
-model service_listings {
-  id           Int       @id(map: "service_listings_pk") @default(autoincrement())
-  title        String
-  description  String
-  token_reward Int
-  posted_by    String
-  posted_at    DateTime  @db.Timestamptz(6)
-  category     String
-  image_url    String?
-  status       String
-  reports      reports[]
-  users        users     @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
+  users     user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ads_watching_history_users_fk")
 }
 
 model service_request_completion {
-  id                  Int              @id(map: "services_request_completion_pk") @default(autoincrement())
+  id                  Int             @id(map: "services_request_completion_pk") @default(autoincrement())
   request_id          Int
   requester_completed Boolean
   provider_completed  Boolean
   is_active           Boolean
-  service_requests    service_requests @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "services_request_completion_service_requests_fk")
+  service_requests    service_request @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "services_request_completion_service_requests_fk")
 
   @@index([request_id], map: "idx_service_completion_request_id")
 }
 
-model service_requests {
-  id                                         Int                          @id(map: "requests_pk") @default(autoincrement())
-  listing_id                                 Int
-  requester_id                               String
-  provider_id                                String
-  status_detail                              service_request_status
-  activity                                   service_activity
-  created_at                                 DateTime                     @db.Timestamptz(6)
-  updated_at                                 DateTime                     @db.Timestamptz(6)
-  token_reward                               Int
-  payments                                   payments[]
-  request_reports                            request_reports[]
-  reviews                                    reviews?
-  service_request_completion                 service_request_completion[]
-  users_service_requests_provider_idTousers  users                        @relation("service_requests_provider_idTousers", fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk")
-  users_service_requests_requester_idTousers users                        @relation("service_requests_requester_idTousers", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk_1")
+model coupon_code {
+  id              Int               @id(map: "coupon_codes_pk") @default(autoincrement())
+  coupon_code     String
+  reward_id       Int
+  is_claimed      Boolean
+  reward          reward            @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "coupon_codes_rewards_fk")
+  redeemed_reward redeemed_reward[]
+}
+
+model event {
+  type         String         @db.VarChar
+  target_id    Int
+  created_at   DateTime       @db.Timestamptz(6)
+  id           BigInt         @id(map: "notification_events_pk") @default(autoincrement())
+  description  String
+  notification notification[]
+
+  @@index([target_id], map: "idx_events_target_id")
+}
+
+model notification {
+  id                                        Int     @id(map: "notifications_pk") @default(autoincrement())
+  message                                   String
+  recipient_user_id                         String
+  action_user_id                            String
+  is_read                                   Boolean
+  event_id                                  BigInt
+  event                                     event   @relation(fields: [event_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_notification_events_fk")
+  user_notification_action_user_idTouser    user    @relation("notification_action_user_idTouser", fields: [action_user_id], references: [id], onDelete: Cascade, map: "notifications_users_action_fk")
+  user_notification_recipient_user_idTouser user    @relation("notification_recipient_user_idTouser", fields: [recipient_user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "notifications_users_recipient_fk")
+}
+
+model payment {
+  id                 Int             @id(map: "payments_pk") @default(autoincrement())
+  service_request_id Int
+  payer_id           String
+  amount_tokens      Int
+  status             payment_status
+  created_at         DateTime        @db.Timestamptz(6)
+  updated_at         DateTime        @db.Timestamptz(6)
+  service_request    service_request @relation(fields: [service_request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_service_requests_fk")
+  user               user            @relation(fields: [payer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "payments_users_fk")
+}
+
+model rating {
+  user_id       String @id(map: "ratings_pk")
+  total_ratings Int
+  rating_count  Int
+  user          user   @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ratings_users_fk")
+}
+
+model redeemed_reward {
+  id             Int         @id(map: "redeemed_rewards_pk") @default(autoincrement())
+  reward_id      Int
+  user_id        String
+  redeemed_at    DateTime    @db.Timestamptz(6)
+  cost           Int
+  coupon_code_id Int
+  coupon_code    coupon_code @relation(fields: [coupon_code_id], references: [id], onDelete: Cascade, map: "redeemed_rewards_coupon_codes_fk")
+  reward         reward      @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "redeemed_rewards_rewards_fk")
+  user           user        @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "redeemed_user_id_fk")
+}
+
+model report {
+  id                Int             @id(map: "reports_pk") @default(autoincrement())
+  listing_id        Int
+  reporter_id       String
+  datetime          DateTime        @db.Timestamptz(6)
+  report_reason     String?
+  status            String
+  additional_detail String?
+  service_listing   service_listing @relation(fields: [listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reports_service_listings_fk_1")
+  user              user            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
+
+  @@unique([reporter_id, listing_id], map: "reports_unique")
+}
+
+model request_report {
+  id              Int             @id(map: "request_issues_pk") @default(autoincrement())
+  reporter_id     String
+  request_id      Int
+  ticket_id       String          @unique(map: "request_issues_unique")
+  created_at      DateTime        @db.Timestamptz(6)
+  status          String
+  service_request service_request @relation(fields: [request_id], references: [id], onDelete: Cascade, map: "request_issues_service_requests_fk")
+  user            user            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "request_issues_users_fk")
+}
+
+model review {
+  id                            Int             @id(map: "reviews_pk") @default(autoincrement())
+  request_id                    Int             @unique(map: "reviews_unique")
+  reviewer_id                   String
+  reviewee_id                   String
+  rating                        Int
+  comment                       String?
+  date_time                     DateTime        @db.Timestamptz(6)
+  service_request               service_request @relation(fields: [request_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_service_requests_fk")
+  user_review_reviewer_idTouser user            @relation("review_reviewer_idTouser", fields: [reviewer_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk")
+  user_review_reviewee_idTouser user            @relation("review_reviewee_idTouser", fields: [reviewee_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reviews_users_fk_1")
+}
+
+model reward {
+  id              Int               @id(map: "rewards_pk") @default(autoincrement())
+  title           String
+  description     String
+  cost            Int
+  image_url       String?           @db.VarChar
+  created_date    DateTime          @db.Timestamptz(6)
+  coupon_code     coupon_code[]
+  redeemed_reward redeemed_reward[]
+}
+
+model service_listing {
+  id               Int                      @id(map: "service_listings_pk") @default(autoincrement())
+  title            String
+  description      String
+  token_reward     Int
+  posted_by        String
+  posted_at        DateTime                 @db.Timestamptz(6)
+  category         String
+  image_url        String?
+  status           String
+  contact_method   String?
+  session_duration Unsupported("interval")?
+  report           report[]
+  user             user                     @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
+}
+
+model service_request {
+  id                                      Int                          @id(map: "requests_pk") @default(autoincrement())
+  listing_id                              Int
+  requester_id                            String
+  provider_id                             String
+  status_detail                           service_request_status
+  activity                                service_activity
+  created_at                              DateTime                     @db.Timestamptz(6)
+  updated_at                              DateTime                     @db.Timestamptz(6)
+  token_reward                            Int
+  payment                                 payment[]
+  request_report                          request_report[]
+  review                                  review?
+  user_service_request_provider_idTouser  user                         @relation("service_request_provider_idTouser", fields: [provider_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk")
+  user_service_request_requester_idTouser user                         @relation("service_request_requester_idTouser", fields: [requester_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "service_requests_users_fk_1")
+  service_request_completion              service_request_completion[]
 
   @@index([id], map: "idx_service_requests_id")
   @@index([listing_id], map: "idx_service_requests_listing_id")
@@ -113,108 +179,56 @@ model service_requests {
   @@index([requester_id], map: "idx_service_requests_requester_id")
 }
 
-model transactions {
+model transaction {
   id         Int      @id(map: "transactions_pk") @default(autoincrement())
   user_id    String
   type       String
   amount     Int
   created_at DateTime @default(now()) @db.Timestamptz(6)
-  users      users    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "transactions_users_fk")
+  user       user     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "transactions_users_fk")
 }
 
-model users {
-  id                                                    String                 @id(map: "users_pk") @unique(map: "users_unique")
-  phone                                                 String
-  token_balance                                         Int
-  status                                                account_status
-  address_line_1                                        String
-  address_line_2                                        String
-  city                                                  String
-  state_province                                        String
-  zip_postal_code                                       String
-  country                                               String
-  joined_at                                             DateTime               @db.Timestamptz(6)
-  is_email_signedup                                     Boolean
-  full_name                                             String
-  is_paid                                               Boolean
-  ads_watching_history                                  ads_watching_history[]
-  notifications_notifications_action_user_idTousers     notifications[]        @relation("notifications_action_user_idTousers")
-  notifications_notifications_recipient_user_idTousers  notifications[]        @relation("notifications_recipient_user_idTousers")
-  payments                                              payments[]
-  other_ratings                                         ratings?               @relation("ratingsToratings")
-  redeemed_rewards                                      redeemed_rewards[]
-  reports                                               reports[]
-  request_reports                                       request_reports[]
-  reviews_reviews_reviewer_idTousers                    reviews[]              @relation("reviews_reviewer_idTousers")
-  reviews_reviews_reviewee_idTousers                    reviews[]              @relation("reviews_reviewee_idTousers")
-  service_listings                                      service_listings[]
-  service_requests_service_requests_provider_idTousers  service_requests[]     @relation("service_requests_provider_idTousers")
-  service_requests_service_requests_requester_idTousers service_requests[]     @relation("service_requests_requester_idTousers")
-  transactions                                          transactions[]
+model user {
+  id                                                 String                 @id(map: "users_pk") @unique(map: "users_unique")
+  phone                                              String
+  token_balance                                      Int
+  status                                             account_status
+  address_line_1                                     String
+  address_line_2                                     String
+  city                                               String
+  state_province                                     String
+  zip_postal_code                                    String
+  country                                            String
+  joined_at                                          DateTime               @db.Timestamptz(6)
+  is_email_signedup                                  Boolean
+  full_name                                          String
+  is_paid                                            Boolean
+  about_me                                           String?
+  ads_watching_history                               ads_watching_history[]
+  notification_notification_action_user_idTouser     notification[]         @relation("notification_action_user_idTouser")
+  notification_notification_recipient_user_idTouser  notification[]         @relation("notification_recipient_user_idTouser")
+  payment                                            payment[]
+  rating                                             rating?
+  redeemed_reward                                    redeemed_reward[]
+  report                                             report[]
+  request_report                                     request_report[]
+  review_review_reviewer_idTouser                    review[]               @relation("review_reviewer_idTouser")
+  review_review_reviewee_idTouser                    review[]               @relation("review_reviewee_idTouser")
+  service_listing                                    service_listing[]
+  service_request_service_request_provider_idTouser  service_request[]      @relation("service_request_provider_idTouser")
+  service_request_service_request_requester_idTouser service_request[]      @relation("service_request_requester_idTouser")
+  transaction                                        transaction[]
+  warning                                            warning[]
 }
 
-model reports {
-  id                Int              @id(map: "reports_pk") @default(autoincrement())
-  listing_id        Int
-  reporter_id       String
-  datetime          DateTime         @db.Timestamptz(6)
-  report_reason     String?
-  status            String
-  additional_detail String?
-  service_listings  service_listings @relation(fields: [listing_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "reports_service_listings_fk_1")
-  users             users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "reports_users_fk")
-
-  @@unique([reporter_id, listing_id], map: "reports_unique")
-}
-
-model redeemed_rewards {
-  id             Int          @id(map: "redeemed_rewards_pk") @default(autoincrement())
-  reward_id      Int
-  user_id        String
-  redeemed_at    DateTime     @db.Timestamptz(6)
-  cost           Int
-  coupon_code_id Int
-  coupon_codes   coupon_codes @relation(fields: [coupon_code_id], references: [id], onDelete: Cascade, map: "redeemed_rewards_coupon_codes_fk")
-  rewards        rewards      @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "redeemed_rewards_rewards_fk")
-  users          users        @relation(fields: [user_id], references: [id], onDelete: Cascade, map: "redeemed_user_id_fk")
-}
-
-model ratings {
-  user_id       String @id(map: "ratings_pk")
-  total_ratings Int
-  rating_count  Int
-  ratings       users  @relation("ratingsToratings", fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "ratings_ratings_fk")
-}
-
-model coupon_codes {
-  id               Int                @id(map: "coupon_codes_pk") @default(autoincrement())
-  coupon_code      String
-  reward_id        Int
-  is_claimed       Boolean
-  rewards          rewards            @relation(fields: [reward_id], references: [id], onDelete: Cascade, map: "coupon_codes_rewards_fk")
-  redeemed_rewards redeemed_rewards[]
-}
-
-model events {
-  type          String          @db.VarChar
-  target_id     Int
-  created_at    DateTime        @db.Timestamptz(6)
-  id            BigInt          @id(map: "notification_events_pk") @default(autoincrement())
-  description   String
-  notifications notifications[]
-
-  @@index([target_id], map: "idx_events_target_id")
-}
-
-model request_reports {
-  id               Int              @id(map: "request_issues_pk") @default(autoincrement())
-  reporter_id      String
-  request_id       Int
-  ticket_id        String           @unique(map: "request_issues_unique")
-  created_at       DateTime         @db.Timestamptz(6)
-  status           String
-  service_requests service_requests @relation(fields: [request_id], references: [id], onDelete: Cascade, map: "request_issues_service_requests_fk")
-  users            users            @relation(fields: [reporter_id], references: [id], onDelete: Cascade, map: "request_issues_users_fk")
+model warning {
+  id         Int              @id(map: "warning_pk") @default(autoincrement())
+  user_id    String
+  severity   warning_severity
+  comment    String
+  created_at DateTime         @db.Timestamptz(6)
+  reason     String
+  user       user             @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "warning_users_fk")
 }
 
 enum account_status {
@@ -257,4 +271,9 @@ enum status {
   ongoing
   done
   cancelled
+}
+
+enum warning_severity {
+  mild
+  severe
 }
