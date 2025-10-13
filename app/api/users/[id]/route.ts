@@ -39,41 +39,4 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
   }
 }
 
-/**
- * PATCH /api/users/:id
- * Allows partial updates; only fields present will be updated.
- */
-export async function PATCH(req: Request, context: { params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  try {
-    const body = await req.json();
-    const updated = await prisma.user.update({
-      where: { id: params.id },
-      data: body,
-    });
-    return NextResponse.json({ status: "success", message: "User updated", data: updated });
-  } catch (error) {
-    console.error("Error updating user:", error);
-    return NextResponse.json(
-      { status: "error", message: "Failed to update user", data: null },
-      { status: 500 }
-    );
-  }
-}
 
-/**
- * DELETE /api/users/:id
- */
-export async function DELETE(request: Request, context: { params: Promise<{ id: string }> }) {
-  const params = await context.params;
-  try {
-    await prisma.user.delete({ where: { id: params.id } });
-    return NextResponse.json({ status: "success", message: "User deleted", data: {} });
-  } catch (error) {
-    console.error("Error deleting user:", error);
-    return NextResponse.json(
-      { status: "error", message: "Failed to delete user", data: null },
-      { status: 500 }
-    );
-  }
-}
