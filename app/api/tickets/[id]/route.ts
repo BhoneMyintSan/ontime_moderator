@@ -22,17 +22,22 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
         { status: 400 }
       );
     }
-    // Fetch ticket detail using Prisma relations instead of missing generated SQL
+    // Fetch ticket detail using Prisma relations and additional lookup for listing title
     const issue = await prisma.request_report.findUnique({
       where: { id: ticketId },
-      include: {
-        user: {
-          select: { id: true, full_name: true },
-        },
+      select: {
+        id: true,
+        ticket_id: true,
+        reporter_id: true,
+        created_at: true,
+        status: true,
+        request_id: true,
+        user: { select: { id: true, full_name: true } },
         service_request: {
           select: {
             id: true,
             listing_id: true,
+            status_detail: true,
             user_service_request_provider_idTouser: { select: { id: true, full_name: true } },
           },
         },
@@ -46,14 +51,32 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       );
     }
 
+    // Fetch listing title separately (no direct relation on service_request model)
+    const listingId = issue.service_request?.listing_id ?? null;
+    let listingTitle: string = '';
+    if (listingId !== null) {
+      const listing = await prisma.service_listing.findUnique({
+        where: { id: listingId },
+        select: { id: true, title: true },
+      });
+      listingTitle = listing?.title ?? '';
+    }
+
+    const rawStatus = (issue.status ?? issue.service_request?.status_detail ?? '').toString().toLowerCase();
+    const status = rawStatus && ['resolved', 'completed', 'closed'].includes(rawStatus) ? 'resolved' : 'ongoing';
+
     const data = {
       id: issue.id,
       ticket_id: issue.ticket_id,
+      reporter_id: issue.reporter_id,
       reporter_name: issue.user?.full_name ?? '',
-      listing_id: issue.service_request?.listing_id,
-      listing_title: '', // Not available directly; could be fetched via service_listings if needed
+      request_id: issue.request_id,
+      listing_id: listingId ?? 0,
+      listing_title: listingTitle,
       provider_id: issue.service_request?.user_service_request_provider_idTouser?.id ?? '',
       provider_name: issue.service_request?.user_service_request_provider_idTouser?.full_name ?? '',
+      created_at: issue.created_at ? new Date(issue.created_at).toISOString() : '',
+      status,
     };
 
     return NextResponse.json({
@@ -156,25 +179,65 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       data: { status: uiStatus }
     });
 
-    const transformedTicket = {
-      id: updatedTicket.id.toString(),
-      service: updatedTicket.listing_id.toString(),
-      serviceDetails: null, // We don't need to fetch service details again for update
-      by: updatedTicket.user_service_request_requester_idTouser.full_name,
-      byId: updatedTicket.user_service_request_requester_idTouser.id,
-      against: updatedTicket.user_service_request_provider_idTouser.full_name,
-      againstId: updatedTicket.user_service_request_provider_idTouser.id,
-      date: updatedTicket.created_at.toISOString().split('T')[0],
-      updatedDate: updatedTicket.updated_at.toISOString().split('T')[0],
-      status: uiStatus,
-      activity: updatedTicket.activity,
-      tokenReward: updatedTicket.token_reward
+    // Re-fetch the issue to build consistent response shape
+    const updatedIssue = await prisma.request_report.findUnique({
+      where: { id: ticketId },
+      select: {
+        id: true,
+        ticket_id: true,
+        reporter_id: true,
+        created_at: true,
+        status: true,
+        request_id: true,
+        user: { select: { id: true, full_name: true } },
+        service_request: {
+          select: {
+            id: true,
+            listing_id: true,
+            status_detail: true,
+            user_service_request_provider_idTouser: { select: { id: true, full_name: true } },
+          },
+        },
+      },
+    });
+
+    if (!updatedIssue) {
+      return NextResponse.json(
+        { status: 'error', message: 'Ticket not found after update' },
+        { status: 404 }
+      );
+    }
+
+    const updatedListingId = updatedIssue.service_request?.listing_id ?? null;
+    let updatedListingTitle: string = '';
+    if (updatedListingId !== null) {
+      const listing = await prisma.service_listing.findUnique({
+        where: { id: updatedListingId },
+        select: { id: true, title: true },
+      });
+      updatedListingTitle = listing?.title ?? '';
+    }
+
+    const mappedStatus = uiStatus; // Already mapped and saved; UI expects 'resolved' | 'ongoing'
+
+    const responseData = {
+      id: updatedIssue.id,
+      ticket_id: updatedIssue.ticket_id,
+      reporter_id: updatedIssue.reporter_id,
+      reporter_name: updatedIssue.user?.full_name ?? '',
+      request_id: updatedIssue.request_id,
+      listing_id: updatedListingId ?? 0,
+      listing_title: updatedListingTitle,
+      provider_id: updatedIssue.service_request?.user_service_request_provider_idTouser?.id ?? '',
+      provider_name: updatedIssue.service_request?.user_service_request_provider_idTouser?.full_name ?? '',
+      created_at: updatedIssue.created_at ? new Date(updatedIssue.created_at).toISOString() : '',
+      status: mappedStatus,
     };
 
-    return NextResponse.json({ 
-      status: 'success', 
+    return NextResponse.json({
+      status: 'success',
       message: 'Ticket updated successfully',
-      data: transformedTicket 
+      data: responseData,
     });
   } catch (error) {
     console.error('Error in PATCH /api/tickets/[id]:', error);
