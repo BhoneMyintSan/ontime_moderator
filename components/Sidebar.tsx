@@ -24,7 +24,6 @@ const Sidebar = () => {
     { name: "Reports", href: "/dashboard/reports", icon: AlertTriangle, color: "text-red-400", bgColor: "bg-red-500/10" },
     { name: "Users", href: "/dashboard/users", icon: Users, color: "text-purple-400", bgColor: "bg-purple-500/10" },
     { name: "Rewards", href: "/dashboard/reward", icon: Gift, color: "text-pink-400", bgColor: "bg-pink-500/10" },
-    { name: "Refund", href: "/dashboard/refund", icon: DollarSign, color: "text-emerald-400", bgColor: "bg-emerald-500/10" },
     { name: "Settings", href: "/dashboard/settings", icon: Settings, color: "text-indigo-400", bgColor: "bg-indigo-500/10" },
   ];
 

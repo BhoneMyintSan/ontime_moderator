@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/components/ui/use-toast";
-import { Gift, Ticket, Check, Package, AlertCircle } from "lucide-react";
+import { Gift, Ticket, Check, Package, AlertCircle, Trash2 } from "lucide-react";
 
 interface CouponCode {
   id: number;
@@ -22,7 +22,7 @@ interface CouponCode {
 interface RedeemedReward {
   id: number;
   redeemed_at: string;
-  users: {
+  user: {
     id: string;
     full_name: string;
     phone: string;
@@ -36,8 +36,8 @@ interface Reward {
   cost: number;
   image_url: string | null;
   created_date: string;
-  coupon_codes: CouponCode[];
-  redeemed_rewards: RedeemedReward[];
+  coupon_code: CouponCode[];
+  redeemed_reward: RedeemedReward[];
   total_coupons: number;
   claimed_coupons: number;
   available_coupons: number;
@@ -351,7 +351,7 @@ export default function RewardManagement() {
                       <Button
                         variant="outline"
                         size="sm"
-                        className="flex-1 border-purple-500/50 text-purple-300 hover:bg-purple-500/10 hover:scale-105 transition-all duration-300"
+                        className="flex-1 border-purple-500/70 bg-purple-500/10 text-purple-200 hover:bg-purple-500/20 hover:text-white hover:border-purple-400 hover:scale-105 transition-all duration-300"
                         onClick={() => {
                           setSelectedReward(reward);
                           setShowCouponsDialog(true);
@@ -369,7 +369,7 @@ export default function RewardManagement() {
                           setShowDeleteDialog(true);
                         }}
                       >
-                        <AlertCircle className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
 
@@ -464,7 +464,11 @@ export default function RewardManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAddDialog(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddDialog(false)}
+              className="border-[#29294d] text-[#050505] hover:bg-[#29294d] hover:text-white"
+            >
               Cancel
             </Button>
             <Button onClick={handleAddReward}>Create Reward</Button>
@@ -476,7 +480,7 @@ export default function RewardManagement() {
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogContent className="bg-[#1f1f33] border-[#29294d]">
           <DialogHeader>
-            <DialogTitle className="text-white">Delete Reward</DialogTitle>
+            <DialogTitle className="text-black">Delete Reward</DialogTitle>
             <DialogDescription className="text-[#b3b3c6]">
               Are you sure you want to delete{" "}
               <span className="font-bold text-white">{selectedReward?.title}</span>?
@@ -484,7 +488,11 @@ export default function RewardManagement() {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDeleteDialog(false)}
+              className="border-[#29294d] text-[#1a1717] hover:bg-[#29294d] hover:text-white"
+            >
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleDeleteReward}>
@@ -500,28 +508,39 @@ export default function RewardManagement() {
           <DialogHeader>
             <DialogTitle className="text-xl text-white">{selectedReward?.title} - Coupon Codes</DialogTitle>
             <DialogDescription className="text-base text-[#b3b3c6]">
+              {selectedReward?.description}
+            </DialogDescription>
+            <div className="text-sm text-[#b3b3c6] mt-2">
               Total: <span className="font-semibold text-white">{selectedReward?.total_coupons}</span> | 
               Used: <span className="font-semibold text-green-400">{selectedReward?.claimed_coupons}</span> | 
               Available: <span className="font-semibold text-amber-400">{selectedReward?.available_coupons}</span>
-            </DialogDescription>
+            </div>
           </DialogHeader>
           <div className="overflow-y-auto flex-1 py-4 px-1">
             <div className="space-y-3">
-              {selectedReward?.coupon_codes.map((coupon) => (
-                <div
-                  key={coupon.id}
-                  className="flex items-center justify-between p-4 bg-[#1f1f33] rounded-lg border border-[#29294d] hover:bg-[#252540] transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <code className="text-white font-mono text-base bg-[#252540] px-4 py-2 rounded border border-[#29294d]">
-                      {coupon.coupon_code}
-                    </code>
+              {selectedReward?.coupon_code && selectedReward.coupon_code.length > 0 ? (
+                selectedReward.coupon_code.map((coupon) => (
+                  <div
+                    key={coupon.id}
+                    className="flex items-center justify-between p-4 bg-[#1f1f33] rounded-lg border border-[#29294d] hover:bg-[#252540] transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <code className="text-white font-mono text-base bg-[#252540] px-4 py-2 rounded border border-[#29294d]">
+                        {coupon.coupon_code}
+                      </code>
+                    </div>
+                    <Badge variant={coupon.is_claimed ? "success" : "secondary"} className="text-sm px-3 py-1">
+                      {coupon.is_claimed ? "Claimed" : "Available"}
+                    </Badge>
                   </div>
-                  <Badge variant={coupon.is_claimed ? "success" : "secondary"} className="text-sm px-3 py-1">
-                    {coupon.is_claimed ? "Claimed" : "Available"}
-                  </Badge>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <Ticket className="w-12 h-12 text-[#6b7280] mx-auto mb-3" />
+                  <p className="text-[#e0e0e0] font-medium">No coupon codes found</p>
+                  <p className="text-[#9ca3af] text-sm">This reward has no coupon codes yet.</p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
           <DialogFooter className="mt-4">

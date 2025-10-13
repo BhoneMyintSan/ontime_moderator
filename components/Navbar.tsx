@@ -22,18 +22,18 @@ const Navbar = () => {
 
   interface Suggestion {
     id: string;
-    type: 'user' | 'ticket' | 'report' | 'refund';
+    type: 'user' | 'ticket' | 'report';
     title: string;
     description?: string;
     route: string;
   }
 
   // Cache loaded raw datasets across component mounts (simple module-level cache)
-  const dataCacheRef = useRef<{ users?: any[]; tickets?: any[]; reports?: any[]; refunds?: any[] }>({});
+  const dataCacheRef = useRef<{ users?: any[]; tickets?: any[]; reports?: any[] }>({});
 
   const buildSuggestions = (query: string) => {
     const q = query.toLowerCase();
-    const { users = [], tickets = [], reports = [], refunds = [] } = dataCacheRef.current;
+    const { users = [], tickets = [], reports = [] } = dataCacheRef.current;
     const items: Suggestion[] = [];
     users.forEach((u: any) => {
       items.push({
@@ -63,15 +63,7 @@ const Navbar = () => {
         route: `/dashboard/reports/${r.id}`
       });
     });
-    refunds.forEach((rf: any) => {
-      items.push({
-        id: String(rf.id),
-        type: 'refund',
-        title: `Refund ${rf.id}`,
-        description: rf.user ? `User: ${rf.user}` : undefined,
-        route: `/dashboard/refund`
-      });
-    });
+
     // Filter: prefer startsWith matches, then includes
     const starts = items.filter(i => i.title.toLowerCase().startsWith(q));
     const includes = items.filter(i => !i.title.toLowerCase().startsWith(q) && (
@@ -85,17 +77,15 @@ const Navbar = () => {
     if (allDataLoaded || loadingSuggestions) return;
     setLoadingSuggestions(true);
     try {
-      const [usersRes, ticketsRes, reportsRes, refundsRes] = await Promise.all([
+      const [usersRes, ticketsRes, reportsRes] = await Promise.all([
         fetch('/api/users').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ data: [] })),
         fetch('/api/tickets').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ data: [] })),
         fetch('/api/reports').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ data: [] })),
-        fetch('/api/refunds').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ data: [] })),
       ]);
       dataCacheRef.current = {
         users: usersRes.data || [],
         tickets: ticketsRes.data || [],
         reports: reportsRes.data || [],
-        refunds: refundsRes.data || [],
       };
       setAllDataLoaded(true);
     } finally {

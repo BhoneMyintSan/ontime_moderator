@@ -17,13 +17,28 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
 
     const user = await prisma.user.findUnique({
       where: { id: params.id },
-      include: {
-        report: true, // Reports made by this user
+      select: {
+        id: true,
+        full_name: true,
+        phone: true,
+        token_balance: true,
+        status: true,
+        address_line_1: true,
+        address_line_2: true,
+        city: true,
+        state_province: true,
+        zip_postal_code: true,
+        country: true,
+        joined_at: true,
+        is_email_signedup: true,
+        about_me: true,
+        is_paid: true,
+        report: true,
         warning: {
           orderBy: {
             created_at: 'desc'
           }
-        }, // Warnings issued to this user
+        },
       },
     });
     if (!user) {

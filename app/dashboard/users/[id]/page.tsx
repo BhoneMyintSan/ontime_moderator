@@ -1,25 +1,13 @@
 "use client";
 import { useParams, useRouter } from "next/navigation";
-import { FiAlertTriangle } from "react-icons/fi";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { useToast } from "@/components/ui/use-toast";
 
 export default function UserProfile() {
   const router = useRouter();
   const { id } = useParams();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
 
   useEffect(() => {
     if (!id || Array.isArray(id)) return;
@@ -34,103 +22,19 @@ export default function UserProfile() {
 
         const json = await res.json();
         if (json.status === "success") {
+          console.log("User data received:", json.data);
+          console.log("Token balance:", json.data.token_balance);
           setUserData(json.data);
         }
       } catch (error) {
         console.error("Failed to load user:", error);
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description: "Failed to load user profile. Please try again.",
-        });
       } finally {
         setLoading(false);
       }
     };
 
     fetchUser();
-  }, [id, toast]);
-
-  // Confirmation modal state
-  const [showWarningConfirm, setShowWarningConfirm] = useState(false);
-  const [showBanConfirm, setShowBanConfirm] = useState(false);
-  // Warning form state
-  const [warningSeverity, setWarningSeverity] = useState<"mild" | "severe">(
-    "mild"
-  );
-  const [warningReason, setWarningReason] = useState("Policy violation");
-  const [warningComment, setWarningComment] = useState("");
-  const [issuing, setIssuing] = useState(false);
-
-  // Reset warning form to defaults whenever the dialog opens
-  useEffect(() => {
-    if (showWarningConfirm) {
-      setWarningSeverity("mild");
-      setWarningReason("Policy violation");
-      setWarningComment("");
-    }
-  }, [showWarningConfirm]);
-
-  // Account status is managed from the database (active, suspended, banned)
-  const [accountStatus, setAccountStatus] = useState("active");
-
-  useEffect(() => {
-    if (userData && userData.status) {
-      setAccountStatus(userData.status);
-    }
-  }, [userData]);
-
-  const handleWarning = async () => {
-    if (!id || Array.isArray(id)) return;
-    try {
-      setIssuing(true);
-      const res = await fetch("/api/warning", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          user_id: id,
-          severity: warningSeverity,
-          reason: warningReason || "Policy violation",
-          comment: warningComment,
-        }),
-      });
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const json = await res.json();
-      if (json.status === "success") {
-        // Optimistically update UI
-        setUserData((prev: any) => ({
-          ...prev,
-          warning: [json.data, ...(prev?.warning || [])],
-        }));
-        toast({
-          title: "Warning Issued",
-          description: `Warning successfully issued to ${userData.full_name}`,
-        });
-      } else {
-        throw new Error(json.message || "Failed to issue warning");
-      }
-    } catch (e) {
-      console.error("Failed to issue warning:", e);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to issue warning. Please try again.",
-      });
-    } finally {
-      setIssuing(false);
-      setShowWarningConfirm(false);
-      setWarningComment("");
-    }
-  };
-
-  const handleBan = () => {
-    setShowBanConfirm(false);
-    toast({
-      variant: "destructive",
-      title: "User Banned",
-      description: `${userData.full_name} has been permanently banned from the platform.`,
-    });
-  };
+  }, [id]);
 
   if (loading) {
     return (
@@ -144,7 +48,24 @@ export default function UserProfile() {
     return (
       <div className="text-white text-center mt-20">
         User not found.
-        <Button variant="link" className="ml-4" onClick={() => router.back()}>
+        <Button
+          onClick={() => router.back()}
+          size="lg"
+          className="w-full sm:w-auto ml-4"
+        >
+          <svg
+            className="w-4 h-4 mr-2"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
           Go Back
         </Button>
       </div>
@@ -152,15 +73,18 @@ export default function UserProfile() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto mt-6 px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-      {/* Header Card - Enhanced */}
-      <div className="relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 rounded-2xl blur-3xl"></div>
-        <div className="relative bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-2xl overflow-hidden">
-          <div className="p-6 sm:p-8">
+    <div className="min-h-screen bg-[#23233a] p-4 sm:p-6 lg:p-8">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Header Card - Enhanced */}
+        <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 sm:p-8 border border-[#29294d] overflow-hidden">
+          {/* Gradient Glow Effect */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
+          
+          <div className="relative">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
               {/* Avatar */}
-              <div className="w-28 h-28 rounded-2xl border-4 border-primary/20 bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center text-white font-bold text-4xl shadow-xl flex-shrink-0">
+              <div className="w-28 h-28 rounded-2xl border-4 border-blue-500/30 bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center text-white font-bold text-4xl shadow-xl flex-shrink-0">
                 {userData.full_name.charAt(0).toUpperCase()}
               </div>
 
@@ -170,20 +94,6 @@ export default function UserProfile() {
                   {userData.full_name}
                 </h1>
                 <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <Badge
-                    variant={
-                      userData.status === "active"
-                        ? "success"
-                        : userData.status === "suspended"
-                        ? "warning"
-                        : userData.status === "banned"
-                        ? "destructive"
-                        : "secondary"
-                    }
-                    className="text-sm px-3 py-1 capitalize"
-                  >
-                    {userData.status}
-                  </Badge>
                   <span className="text-sm text-[#b3b3c6] flex items-center gap-2">
                     <svg
                       className="w-4 h-4"
@@ -210,10 +120,10 @@ export default function UserProfile() {
                     ID: {userData.id?.substring(0, 8)}...
                   </span>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="flex items-center gap-2 text-[#e0e0e0] bg-[#252540] px-3 py-2 rounded-lg">
                     <svg
-                      className="w-4 h-4 text-primary"
+                      className="w-4 h-4 text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -231,7 +141,7 @@ export default function UserProfile() {
                   </div>
                   <div className="flex items-center gap-2 text-[#e0e0e0] bg-[#252540] px-3 py-2 rounded-lg">
                     <svg
-                      className="w-4 h-4 text-primary"
+                      className="w-4 h-4 text-blue-400"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -247,264 +157,42 @@ export default function UserProfile() {
                       {userData.phone || "No phone"}
                     </span>
                   </div>
+                  <div className="flex items-center gap-2 text-[#e0e0e0] bg-[#252540] px-3 py-2 rounded-lg">
+                    <svg
+                      className="w-4 h-4 text-green-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                    <span className="text-sm font-medium text-green-400">
+                      {(userData.token_balance ?? 0).toLocaleString()} Tokens
+                    </span>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+        </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-col gap-3 w-full sm:w-auto">
-                <Button
-                  variant="default"
-                  className="bg-amber-500 hover:bg-amber-600 w-full sm:w-auto shadow-lg"
-                  onClick={() => setShowWarningConfirm(true)}
-                >
-                  <FiAlertTriangle className="mr-2" />
-                  Issue Warning
-                </Button>
-                <Button
-                  variant="destructive"
-                  className="w-full sm:w-auto"
-                  onClick={() => setShowBanConfirm(true)}
-                >
-                  Ban User
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* Confirmation Dialogs */}
-      <Dialog open={showWarningConfirm} onOpenChange={setShowWarningConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Warning</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to issue a warning to{" "}
-              <span className="font-bold text-white">{userData.full_name}</span>
-              ?
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3 py-2">
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-sm text-[#9ca3af]">Severity</label>
-                <div className="mt-1 flex gap-2">
-                  <button
-                    className={`px-3 py-1 rounded border ${
-                      warningSeverity === "mild"
-                        ? "border-amber-400 text-amber-300 bg-amber-500/10"
-                        : "border-[#29294d] text-[#b3b3c6]"
-                    }`}
-                    onClick={() => setWarningSeverity("mild")}
-                    type="button"
-                  >
-                    Mild
-                  </button>
-                  <button
-                    className={`px-3 py-1 rounded border ${
-                      warningSeverity === "severe"
-                        ? "border-red-400 text-red-300 bg-red-500/10"
-                        : "border-[#29294d] text-[#b3b3c6]"
-                    }`}
-                    onClick={() => setWarningSeverity("severe")}
-                    type="button"
-                  >
-                    Severe
-                  </button>
-                </div>
-              </div>
-              <div>
-                <label className="text-sm text-[#9ca3af]">Reason</label>
-                <input
-                  className="mt-1 w-full bg-[#252540] border border-[#29294d] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#6366f1]"
-                  value={warningReason}
-                  onChange={(e) => setWarningReason(e.target.value)}
-                  placeholder="Reason for warning"
-                />
-              </div>
-            </div>
-            <div>
-              <label className="text-sm text-[#9ca3af]">
-                Comment (optional)
-              </label>
-              <textarea
-                className="mt-1 w-full bg-[#252540] border border-[#29294d] rounded px-3 py-2 text-sm text-white focus:outline-none focus:border-[#6366f1]"
-                value={warningComment}
-                onChange={(e) => setWarningComment(e.target.value)}
-                placeholder="Additional context for this warning"
-                rows={3}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowWarningConfirm(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="bg-orange-500 hover:bg-orange-600"
-              onClick={handleWarning}
-              disabled={issuing}
-            >
-              {issuing ? "Issuing..." : "Confirm"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      <Dialog open={showBanConfirm} onOpenChange={setShowBanConfirm}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Ban</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to{" "}
-              <span className="font-bold text-red-400">permanently ban</span>{" "}
-              <span className="font-bold text-white">{userData.full_name}</span>
-              ? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowBanConfirm(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleBan}>
-              Ban User
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
-      {/* Stats - Enhanced */}
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-        <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 shadow-xl border border-[#29294d] hover:scale-[1.02] transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">
-              Reports Made
-            </span>
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-primary"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-            </div>
-          </div>
-          <span className="text-4xl font-bold text-white">
-            {userData.reports?.length || 0}
-          </span>
-          <p className="text-xs text-[#b3b3c6] mt-1">Filed reports</p>
-        </div>
-        <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 shadow-xl border border-[#29294d] hover:scale-[1.02] transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">
-              Warnings
-            </span>
-            <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-amber-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
-              </svg>
-            </div>
-          </div>
-          <span className="text-4xl font-bold text-amber-400">
-            {userData.warning?.length || 0}
-          </span>
-          <p className="text-xs text-[#b3b3c6] mt-1">Active warnings</p>
-        </div>
-        <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 shadow-xl border border-[#29294d] hover:scale-[1.02] transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">
-              Token Balance
-            </span>
-            <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <span className="text-4xl font-bold text-green-400">
-            {userData.token_balance || 0}
-          </span>
-          <p className="text-xs text-[#b3b3c6] mt-1">Available tokens</p>
-        </div>
-        <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 shadow-xl border border-[#29294d] hover:scale-[1.02] transition-all duration-300">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">
-              Account Status
-            </span>
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-              <svg
-                className="w-5 h-5 text-blue-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-            </div>
-          </div>
-          <div className="mt-2">
-            <Badge
-              variant={
-                accountStatus.toLowerCase() === "active"
-                  ? "success"
-                  : accountStatus.toLowerCase() === "suspended"
-                  ? "destructive"
-                  : accountStatus.toLowerCase() === "banned"
-                  ? "destructive"
-                  : "secondary"
-              }
-              className="text-lg px-4 py-2 font-semibold"
-            >
-              {accountStatus}
-            </Badge>
-          </div>
-          <p className="text-xs text-[#e0e0e0] mt-3">Current status</p>
-        </div>
-      </div>
 
       {/* Additional User Information */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Account Details */}
         <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-primary/5 to-accent/5">
+          <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-blue-500/5 to-purple-500/5">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
               <svg
-                className="w-5 h-5 text-primary"
+                className="w-5 h-5 text-blue-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -524,11 +212,9 @@ export default function UserProfile() {
               <span className="text-[#9ca3af] text-sm font-medium">
                 Email Signup
               </span>
-              <Badge
-                variant={userData.is_email_signedup ? "success" : "secondary"}
-              >
+              <span className={`text-sm font-medium ${userData.is_email_signedup ? 'text-green-400' : 'text-gray-400'}`}>
                 {userData.is_email_signedup ? "Verified" : "Not Verified"}
-              </Badge>
+              </span>
             </div>
             <div className="flex justify-between items-center py-3 border-b border-[#29294d]">
               <span className="text-[#9ca3af] text-sm font-medium">
@@ -556,10 +242,10 @@ export default function UserProfile() {
 
         {/* Location Information */}
         <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-primary/5 to-accent/5">
+          <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-blue-500/5 to-purple-500/5">
             <h2 className="text-xl font-semibold text-white flex items-center gap-2">
               <svg
-                className="w-5 h-5 text-primary"
+                className="w-5 h-5 text-blue-400"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -634,200 +320,9 @@ export default function UserProfile() {
         </div>
       </div>
 
-      {/* Report History */}
-      <div className="bg-[#1f1f33] rounded-xl border border-[#29294d] shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#29294d]">
-          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-            <svg
-              className="w-5 h-5 text-primary"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
-            Reports Made by User
-          </h2>
-        </div>
-        <div className="p-6 space-y-3">
-          {userData.reports && userData.reports.length > 0 ? (
-            userData.reports.map((report: any) => (
-              <div
-                key={report.id}
-                className="bg-[#252540] rounded-lg p-4 border border-[#29294d] hover:bg-[#2a2a55] transition-colors"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <svg
-                          className="w-4 h-4 text-primary"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                          />
-                        </svg>
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-white font-semibold mb-1">
-                          {report.report_reason || "No reason provided"}
-                        </div>
-                        <div className="text-sm text-[#b3b3c6] space-y-1">
-                          <div>
-                            Listing ID:{" "}
-                            <span className="text-white font-mono">
-                              #{report.listing_id}
-                            </span>
-                          </div>
-                          {report.additional_detail && (
-                            <div className="mt-2 text-[#b3b3c6] line-clamp-2">
-                              {report.additional_detail}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <Badge
-                      variant={
-                        report.status === "Resolved" ? "success" : "warning"
-                      }
-                    >
-                      {report.status}
-                    </Badge>
-                    <div className="text-right text-xs text-[#b3b3c6]">
-                      <div>
-                        {new Date(report.datetime).toLocaleDateString()}
-                      </div>
-                      <div className="opacity-70">#{report.id}</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-[#b3b3c6]">
-              <svg
-                className="w-12 h-12 mx-auto mb-3 opacity-50"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                />
-              </svg>
-              <p>No reports found</p>
-            </div>
-          )}
-        </div>
-      </div>
 
-      {/* Warnings History */}
-      <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] shadow-xl overflow-hidden">
-        <div className="px-6 py-4 border-b border-[#29294d] bg-gradient-to-r from-amber-500/5 to-red-500/5">
-          <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-            <FiAlertTriangle className="text-amber-500" />
-            Warnings History
-          </h2>
-        </div>
-        <div className="p-6 space-y-3">
-          {userData.warning && userData.warning.length > 0 ? (
-            userData.warning.map((warning: any) => (
-              <div
-                key={warning.id}
-                className="bg-[#252540] rounded-lg p-4 border border-[#29294d] hover:bg-[#2a2a55] transition-colors"
-              >
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                  <div className="flex-1">
-                    <div className="flex items-start gap-3 mb-2">
-                      <div
-                        className={`w-8 h-8 rounded-lg ${
-                          warning.severity === "severe"
-                            ? "bg-red-500/20"
-                            : "bg-amber-500/20"
-                        } flex items-center justify-center flex-shrink-0`}
-                      >
-                        <FiAlertTriangle
-                          className={
-                            warning.severity === "severe"
-                              ? "text-red-400"
-                              : "text-amber-400"
-                          }
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-white font-semibold">
-                            {warning.reason}
-                          </span>
-                          <Badge
-                            variant={
-                              warning.severity === "severe"
-                                ? "destructive"
-                                : "warning"
-                            }
-                            className="text-xs capitalize"
-                          >
-                            {warning.severity}
-                          </Badge>
-                        </div>
-                        {warning.comment && (
-                          <div className="text-sm text-[#b3b3c6] mt-2 leading-relaxed">
-                            {warning.comment}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-right text-xs text-[#b3b3c6]">
-                    <div>
-                      {new Date(warning.created_at).toLocaleDateString(
-                        "en-US",
-                        { month: "short", day: "numeric", year: "numeric" }
-                      )}
-                    </div>
-                    <div className="opacity-70">#{warning.id}</div>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <div className="text-center py-8 text-[#b3b3c6]">
-              <svg
-                className="w-12 h-12 mx-auto mb-3 opacity-50"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p>No warnings issued</p>
-              <p className="text-xs mt-1">This user has a clean record</p>
-            </div>
-          )}
-        </div>
-      </div>
+
+
 
       {/* Done Button */}
       <div className="flex justify-center sm:justify-end">
@@ -851,6 +346,7 @@ export default function UserProfile() {
           </svg>
           Back to Users
         </Button>
+      </div>
       </div>
     </div>
   );

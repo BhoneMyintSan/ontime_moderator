@@ -3,6 +3,7 @@
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { AlertTriangle, User, FileText, Calendar, Shield, MessageSquare } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 
 export default function ReportDetail() {
   const { id } = useParams();
@@ -63,12 +64,26 @@ export default function ReportDetail() {
               <h2 className="text-xl font-semibold text-red-400">Error</h2>
             </div>
             <p className="text-[#e0e0e0] mb-6">{error}</p>
-            <button
-              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-2.5 rounded-lg text-white font-medium transition-all"
+            <Button
               onClick={() => router.back()}
+              size="lg"
+              className="w-full sm:w-auto"
             >
+              <svg
+                className="w-4 h-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                />
+              </svg>
               Go Back
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -152,7 +167,7 @@ export default function ReportDetail() {
               </div>
               <h2 className="text-lg font-semibold text-white">Reporter Information</h2>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Name</p>
                 <p className="text-[#e0e0e0] font-medium">{report.users?.full_name || 'Unknown'}</p>
@@ -164,6 +179,15 @@ export default function ReportDetail() {
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Email</p>
                 <p className="text-[#e0e0e0]">{report.users?.email || 'N/A'}</p>
+              </div>
+              <div className="pt-2">
+                <button 
+                  className="bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm"
+                  onClick={() => router.push(`/dashboard/users/${report.users?.id}`)}
+                  disabled={!report.users?.id}
+                >
+                  View Profile
+                </button>
               </div>
             </div>
           </div>
@@ -238,34 +262,18 @@ export default function ReportDetail() {
           </div>
         </div>
 
-        {/* Additional Details Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d] hover:border-[#383862] transition-all">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500/20 to-emerald-500/20 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-teal-400" />
-              </div>
-              <h2 className="text-lg font-semibold text-white">Additional Details</h2>
+        {/* Service Description Section */}
+        <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d] hover:border-[#383862] transition-all">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center">
+              <FileText className="w-5 h-5 text-indigo-400" />
             </div>
-            <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
-              <p className="text-[#e0e0e0] leading-relaxed">
-                {report.additional_detail || 'No additional details provided'}
-              </p>
-            </div>
+            <h2 className="text-lg font-semibold text-white">Service Description</h2>
           </div>
-
-          <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d] hover:border-[#383862] transition-all">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center">
-                <FileText className="w-5 h-5 text-indigo-400" />
-              </div>
-              <h2 className="text-lg font-semibold text-white">Service Description</h2>
-            </div>
-            <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
-              <p className="text-[#e0e0e0] leading-relaxed">
-                {report.service_listings?.description || 'No description available'}
-              </p>
-            </div>
+          <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
+            <p className="text-[#e0e0e0] leading-relaxed">
+              {report.service_listings?.description || 'No description available'}
+            </p>
           </div>
         </div>
 
@@ -273,13 +281,6 @@ export default function ReportDetail() {
         <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d]">
           <h3 className="text-lg font-semibold text-white mb-4">Moderator Actions</h3>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <button 
-              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
-              onClick={() => router.push(`/dashboard/users/${report.service_listings?.users?.id}`)}
-              disabled={!report.service_listings?.users?.id}
-            >
-              View Service Owner Profile
-            </button>
             <button
               className={`px-6 py-3 rounded-lg font-medium shadow-lg transition-all hover:scale-105 ${
                 serviceStopped
@@ -288,20 +289,38 @@ export default function ReportDetail() {
               }`}
               onClick={() => setServiceStopped(!serviceStopped)}
             >
-              {serviceStopped ? "Undo Stop Service" : "Stop Service"}
-            </button>
-            <button
-              className="bg-[#252540] hover:bg-[#2a2a55] px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 border border-[#29294d]"
-              onClick={() => router.push('/dashboard/reports')}
-            >
-              Back to Reports
+              {serviceStopped ? "Undo Suspend Service" : "Suspend Service"}
             </button>
           </div>
+        </div>
+
+        {/* Back Button */}
+        <div className="flex justify-center sm:justify-end">
+          <Button
+            onClick={() => router.push('/dashboard/reports')}
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Reports
+          </Button>
           {serviceStopped && (
             <div className="mt-4 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
               <p className="text-green-400 font-medium flex items-center gap-2">
                 <Shield className="w-5 h-5" />
-                Service has been stopped for this user.
+                Service has been suspended for this user.
               </p>
             </div>
           )}

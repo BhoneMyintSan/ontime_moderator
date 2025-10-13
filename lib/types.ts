@@ -7,6 +7,8 @@ export interface User {
   status: string;
   warnings: number;
   avatar?: string;
+  joined_at: string;
+  token_balance: number;
 }
 
 export interface ApiResponse<T> {
@@ -31,16 +33,6 @@ export interface Ticket {
   provider_name: string;
   created_at: string;
   status: "Resolved" | "Unresolved";
-}
-
-export interface Refund {
-  id: string;
-  user: string;
-  email: string;
-  amount: string;
-  status: "Pending" | "Approved" | "Rejected";
-  date: string;
-  reason: string;
 }
 
 export interface Applicant {

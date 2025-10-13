@@ -3,14 +3,9 @@ import { useEffect, useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { User } from "@/lib/types";
 import SearchAndFilter from "../SearchAndFilter";
-import { Badge } from "@/components/ui/badge";
 
 interface UserStats {
   total: number;
-  active: number;
-  suspended: number;
-  banned: number;
-  warned: number;
 }
 
 export default function UserTable({
@@ -24,7 +19,6 @@ export default function UserTable({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Record<string, string>>({});
   const router = useRouter();
 
   useEffect(() => {
@@ -42,10 +36,6 @@ export default function UserTable({
           if (onStatsChange) {
             const stats: UserStats = {
               total: json.data.length,
-              active: json.data.filter((u: User) => u.status.toLowerCase() === "active").length,
-              suspended: json.data.filter((u: User) => u.status.toLowerCase() === "suspended").length,
-              banned: json.data.filter((u: User) => u.status.toLowerCase() === "banned").length,
-              warned: json.data.filter((u: User) => u.warnings > 0).length,
             };
             onStatsChange(stats);
           }
@@ -63,14 +53,6 @@ export default function UserTable({
     loadUsers();
   }, [onCountChange, onStatsChange]);
 
-  const filterOptions = {
-    status: [
-      { label: "Active", value: "active" },
-      { label: "Suspended", value: "suspended" },
-      { label: "Banned", value: "banned" },
-    ],
-  };
-
   const filteredUsers = useMemo(() => {
     return users.filter((user) => {
       // Search filter
@@ -79,12 +61,9 @@ export default function UserTable({
         user.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (user.phone && user.phone.includes(searchQuery));
 
-      // Status filter
-      const matchesStatus = !filters.status || user.status === filters.status;
-
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [users, searchQuery, filters]);
+  }, [users, searchQuery]);
 
   if (loading) {
     return <div className="text-center py-4 text-gray-400">Loading...</div>;
@@ -99,8 +78,6 @@ export default function UserTable({
       <SearchAndFilter
         searchPlaceholder="Search users by name, ID, or phone..."
         onSearchChange={setSearchQuery}
-        onFilterChange={setFilters}
-        filterOptions={filterOptions}
       />
       
   <table className="hidden md:table min-w-full text-sm text-white">
@@ -108,8 +85,8 @@ export default function UserTable({
           <tr>
             <th className="px-4 py-3 text-left">Name (ID)</th>
             <th className="px-4 py-3 text-left">Phone</th>
-            <th className="px-4 py-3 text-left">Status</th>
-            <th className="px-4 py-3 text-left">Warnings</th>
+            <th className="px-4 py-3 text-left">Account Date</th>
+            <th className="px-4 py-3 text-left">Tokens</th>
           </tr>
         </thead>
         <tbody>
@@ -125,25 +102,25 @@ export default function UserTable({
               </td>
               <td className="px-4 py-3">{user.phone || "-"}</td>
               <td className="px-4 py-3">
-                <Badge 
-                  variant={
-                    user.status === "active" ? "success" : 
-                    user.status === "suspended" ? "warning" : 
-                    user.status === "banned" ? "destructive" : 
-                    "secondary"
+                {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : "-"}
+                <div className="text-xs text-gray-400">
+                  {user.joined_at ? 
+                    Math.floor((new Date().getTime() - new Date(user.joined_at).getTime()) / (1000 * 60 * 60 * 24)) + " days ago" 
+                    : ""
                   }
-                  className="capitalize"
-                >
-                  {user.status}
-                </Badge>
+                </div>
               </td>
-              <td className="px-4 py-3">{user.warnings}</td>
+              <td className="px-4 py-3">
+                <span className="text-green-400 font-medium">
+                  {(user.token_balance || 0).toLocaleString()}
+                </span>
+              </td>
             </tr>
           ))}
           {filteredUsers.length === 0 && (
             <tr>
               <td colSpan={4} className="text-center py-8 text-gray-400">
-                {searchQuery || Object.keys(filters).length > 0 
+                {searchQuery 
                   ? "No users match your search criteria." 
                   : "No users found."}
               </td>
@@ -156,29 +133,21 @@ export default function UserTable({
         {filteredUsers.map(user => (
           <div key={user.id} onClick={() => router.push(`/dashboard/users/${user.id}`)} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 hover:bg-[#252540] transition cursor-pointer">
             <div className="flex items-center justify-between">
-              <span className="text-white font-semibold truncate max-w-[60%]">{user.full_name}</span>
-              <Badge 
-                variant={
-                  user.status === "active" ? "success" : 
-                  user.status === "suspended" ? "warning" : 
-                  user.status === "banned" ? "destructive" : 
-                  "secondary"
-                }
-                className="capitalize text-xs"
-              >
-                {user.status}
-              </Badge>
+              <span className="text-white font-semibold truncate">{user.full_name}</span>
+              <span className="text-green-400 font-medium text-sm">
+                {(user.token_balance || 0).toLocaleString()} tokens
+              </span>
             </div>
             <div className="text-[#b3b3c6] text-xs flex flex-wrap gap-x-4 gap-y-1">
               <span>ID: {user.id}</span>
               {user.phone && <span>📞 {user.phone}</span>}
-              <span>Warnings: {user.warnings}</span>
+              <span>📅 Joined {user.joined_at ? new Date(user.joined_at).toLocaleDateString() : "N/A"}</span>
             </div>
           </div>
         ))}
         {filteredUsers.length === 0 && (
           <div className="text-center py-8 text-[#b3b3c6] text-sm border border-dashed border-[#29294d] rounded-lg">
-            {searchQuery || Object.keys(filters).length > 0 ? 'No users match your search criteria.' : 'No users found.'}
+            {searchQuery ? 'No users match your search criteria.' : 'No users found.'}
           </div>
         )}
       </div>
