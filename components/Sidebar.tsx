@@ -72,12 +72,12 @@ const Sidebar = () => {
           className="flex items-center gap-3 mb-8 p-2 rounded-xl hover:bg-[#252540]/50 transition-all duration-300 group"
           aria-label="OnTime dashboard home"
         >
-          <div className="w-10 h-10 relative rounded-lg overflow-hidden shadow-md bg-white flex-shrink-0">
+          <div className="w-10 h-10 relative rounded-lg overflow-hidden shadow-md">
             <Image
               src="/ontime_logo.png"
               alt="OnTime Logo"
               fill
-              sizes="40px"
+              sizes="90px"
               priority
               className="object-contain p-1"
             />
