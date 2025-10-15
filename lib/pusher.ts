@@ -1,11 +1,10 @@
-// Temporarily disabled - install pusher package if realtime features are needed
-// import Pusher from "pusher";
+import Pusher from "pusher";
 
 declare global {
-  var pusherClient: any | undefined;
+  var pusherClient: Pusher | undefined;
 }
 
-function createPusher(): any | null {
+function createPusher(): Pusher | null {
   const { PUSHER_APP_ID, PUSHER_KEY, PUSHER_SECRET, PUSHER_CLUSTER } = process.env;
   if (!PUSHER_APP_ID || !PUSHER_KEY || !PUSHER_SECRET || !PUSHER_CLUSTER) {
     if (process.env.NODE_ENV !== "test") {
@@ -15,18 +14,16 @@ function createPusher(): any | null {
     return null;
   }
 
-  // Pusher disabled - install pusher package to enable
-  return null;
-  // return new Pusher({
-  //   appId: PUSHER_APP_ID,
-  //   key: PUSHER_KEY,
-  //   secret: PUSHER_SECRET,
-  //   cluster: PUSHER_CLUSTER,
-  //   useTLS: true,
-  // });
+  return new Pusher({
+    appId: PUSHER_APP_ID,
+    key: PUSHER_KEY,
+    secret: PUSHER_SECRET,
+    cluster: PUSHER_CLUSTER,
+    useTLS: true,
+  });
 }
 
-export function getPusher(): any | null {
+export function getPusher(): Pusher | null {
   if (global.pusherClient) return global.pusherClient;
   const client = createPusher();
   if (client) {
