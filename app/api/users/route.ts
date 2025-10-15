@@ -22,6 +22,7 @@ export async function GET() {
         zip_postal_code: true,
         country: true,
         joined_at: true,
+        token_balance: true,
 
       },
     });

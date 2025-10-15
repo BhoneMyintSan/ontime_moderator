@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { Ticket, User, FileText, Calendar, Shield, MessageSquare } from "lucide-react";
+import { Ticket, User, FileText, Calendar, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface TicketDetail {
   id: number;
@@ -140,12 +141,26 @@ export default function TicketDetailPage() {
       <div className="min-h-screen bg-[#23233a] p-8 flex items-center justify-center">
         <div className="text-center">
           <div className="text-[#e0e0e0] text-lg mb-4">Issue ticket not found</div>
-          <button
-            className="bg-[#252540] hover:bg-[#2a2a55] px-6 py-2.5 rounded-lg text-white font-medium transition-all border border-[#29294d]"
+          <Button
             onClick={() => router.back()}
+            size="lg"
+            className="w-full sm:w-auto"
           >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
             Go Back
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -280,6 +295,17 @@ export default function TicketDetailPage() {
                 <p className="text-[#9ca3af] text-sm mb-1">Service Title</p>
                 <p className="text-[#e0e0e0] font-medium">{ticket.listing_title || 'Unknown'}</p>
               </div>
+              <button
+                className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={() => {
+                  if (ticket.listing_id) {
+                    router.push(`/dashboard/services/${ticket.listing_id}`);
+                  }
+                }}
+                disabled={!ticket.listing_id}
+              >
+                View Service
+              </button>
             </div>
           </div>
 
@@ -314,60 +340,28 @@ export default function TicketDetailPage() {
           </div>
         </div>
 
-        {/* Moderator Notes Section */}
-        <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d]">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-500/20 to-emerald-500/20 flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-teal-400" />
-            </div>
-            <h2 className="text-lg font-semibold text-white">Moderator Notes</h2>
-          </div>
-          <textarea
-            className="w-full h-32 bg-[#252540] border border-[#29294d] rounded-lg p-4 text-[#e0e0e0] placeholder-[#9ca3af] focus:outline-none focus:border-[#6366f1] resize-none transition-colors"
-            placeholder="Add notes about this issue ticket..."
-          ></textarea>
-          <div className="flex justify-end mt-4">
-            <button className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-2.5 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105">
-              Save Notes
-            </button>
-          </div>
-        </div>
-
-        {/* Actions Section */}
-        <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d]">
-          <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <button 
-              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
-              onClick={() => {
-                if (ticket.reporter_id) {
-                  router.push(`/dashboard/users/${ticket.reporter_id}`);
-                }
-              }}
-              disabled={!ticket.reporter_id}
+        {/* Return Button */}
+        <div className="flex justify-center sm:justify-end">
+          <Button
+            onClick={() => router.push("/dashboard/tickets")}
+            size="lg"
+            className="w-full sm:w-auto"
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
             >
-              <User className="w-4 h-4" />
-              View Reporter Profile
-            </button>
-            <button 
-              className="bg-[#6366f1] hover:bg-[#4f46e5] px-6 py-3 rounded-lg text-white font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center gap-2"
-              onClick={() => {
-                if (ticket.provider_id) {
-                  router.push(`/dashboard/users/${ticket.provider_id}`);
-                }
-              }}
-              disabled={!ticket.provider_id}
-            >
-              <User className="w-4 h-4" />
-              View Provider Profile
-            </button>
-            <button
-              className="bg-[#252540] hover:bg-[#2a2a55] px-6 py-3 rounded-lg text-white font-medium transition-all hover:scale-105 border border-[#29294d]"
-              onClick={() => router.push("/dashboard/tickets")}
-            >
-              Back to Issues
-            </button>
-          </div>
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 19l-7-7m0 0l7-7m-7 7h18"
+              />
+            </svg>
+            Back to Issues
+          </Button>
         </div>
       </div>
     </div>

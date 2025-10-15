@@ -6,7 +6,7 @@ import Link from "next/link";
 
 interface SearchResult {
   id: string;
-  type: "user" | "ticket" | "report" | "refund";
+  type: "user" | "ticket" | "report";
   title: string;
   description: string;
   status?: string;
@@ -31,11 +31,10 @@ function SearchContent() {
     try {
       const q = searchQuery.toLowerCase();
 
-      const [usersRes, ticketsRes, reportsRes, refundsRes] = await Promise.all([
+      const [usersRes, ticketsRes, reportsRes] = await Promise.all([
         fetch('/api/users').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
         fetch('/api/tickets').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
         fetch('/api/reports').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
-        fetch('/api/refunds').then(r => r.ok ? r.json() : Promise.reject(r.statusText)).catch(() => ({ status: 'error', data: [] })),
       ]);
 
       const userResults: SearchResult[] = (usersRes.data || []).map((u: any) => ({
@@ -65,16 +64,7 @@ function SearchContent() {
         date: r.datetime,
       }));
 
-      const refundResults: SearchResult[] = (refundsRes.data || []).map((rf: any) => ({
-        id: String(rf.id).replace(/^RF-/, ''),
-        type: 'refund',
-        title: `Refund ${rf.id}`,
-        description: [rf.user && `User: ${rf.user}`, rf.email, rf.amount && `Amount: ${rf.amount}`].filter(Boolean).join(' • '),
-        status: rf.status,
-        date: rf.date,
-      }));
-
-      const all = [...userResults, ...ticketResults, ...reportResults, ...refundResults];
+      const all = [...userResults, ...ticketResults, ...reportResults];
       const filtered = all.filter(item =>
         [item.title, item.description].filter(Boolean).some(s => s!.toLowerCase().includes(q))
       );
@@ -88,12 +78,11 @@ function SearchContent() {
     }
   };
 
-  const getIcon = (type: string) => {
+  const getTypeIcon = (type: string) => {
     switch (type) {
       case "user": return <FiUser className="text-blue-400" size={20} />;
       case "ticket": return <FiFileText className="text-green-400" size={20} />;
       case "report": return <FiAlertTriangle className="text-red-400" size={20} />;
-      case "refund": return <FiDollarSign className="text-yellow-400" size={20} />;
       default: return <FiSearch className="text-gray-400" size={20} />;
     }
   };
@@ -112,7 +101,6 @@ function SearchContent() {
       case "user": return `/dashboard/users/${result.id}`;
       case "ticket": return `/dashboard/tickets/${result.id}`;
       case "report": return `/dashboard/reports/${result.id}`;
-      case "refund": return `/dashboard/refund`;
       default: return "#";
     }
   };
@@ -125,8 +113,7 @@ function SearchContent() {
     { label: "All Results", value: "all" },
     { label: "Users", value: "user" },
     { label: "Tickets", value: "ticket" },
-    { label: "Reports", value: "report" },
-    { label: "Refunds", value: "refund" }
+    { label: "Reports", value: "report" }
   ];
 
   return (
@@ -185,7 +172,7 @@ function SearchContent() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-4 flex-1">
                       <div className="mt-1">
-                        {getIcon(result.type)}
+                        {getTypeIcon(result.type)}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
@@ -219,7 +206,7 @@ function SearchContent() {
                 <p className="text-[#b3b3c6]">
                   {query 
                     ? `No results found for "${query}". Try different keywords.`
-                    : "Enter a search query to find users, tickets, reports, and refunds."
+                    : "Enter a search query to find users, tickets, and reports."
                   }
                 </p>
               </div>

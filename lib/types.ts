@@ -7,6 +7,8 @@ export interface User {
   status: string;
   warnings: number;
   avatar?: string;
+  joined_at: string;
+  token_balance: number;
 }
 
 export interface ApiResponse<T> {
@@ -17,11 +19,20 @@ export interface ApiResponse<T> {
 
 export interface Report {
   id: number;
-  reporter_name: string;
-  service_listing_id: number;
-  reason: string;
+  reporter_name?: string;
+  service_listing_id?: number;
+  listing_id?: number;
+  reason?: string;
+  report_reason?: string;
   status: "Resolved" | "Unresolved";
-  created_at: string;
+  created_at?: string;
+  datetime?: string;
+  reporter_id?: string;
+  additional_detail?: string;
+  users?: {
+    id?: string;
+    full_name?: string;
+  };
 }
 
 export interface Ticket {
@@ -33,14 +44,48 @@ export interface Ticket {
   status: "Resolved" | "Unresolved";
 }
 
-export interface Refund {
-  id: string;
-  user: string;
-  email: string;
-  amount: string;
-  status: "Pending" | "Approved" | "Rejected";
-  date: string;
+export interface ServiceListing {
+  id: number;
+  title: string;
+  description: string;
+  token_reward: number;
+  posted_by: string;
+  posted_at: string;
+  category: string;
+  image_url: string | null;
+  status: string;
+  contact_method: string | null;
+  user: {
+    id: string;
+    full_name: string;
+    phone: string;
+  };
+  warnings?: ServiceWarning[];
+  reports?: Report[];
+  tickets?: Ticket[];
+  warning?: ServiceWarning[];  // Alternative field name from Prisma
+  report?: Report[];           // Alternative field name from Prisma
+  ticket?: Ticket[];           // Alternative field name from Prisma
+  issue_ticket?: Ticket[];     // Database field name from Prisma
+  _count?: {
+    warnings?: number;
+    reports?: number;
+    tickets?: number;
+    warning?: number;   // Alternative field name from Prisma
+    report?: number;    // Alternative field name from Prisma
+    ticket?: number;    // Alternative field name from Prisma
+    issue_ticket?: number; // Database field name from Prisma
+  };
+}
+
+export interface ServiceWarning {
+  id: number;
+  user_id: string;
+  severity: "mild" | "severe";
+  comment: string;
+  created_at: string;
   reason: string;
+  listing_id: number;
 }
 
 export interface Applicant {
@@ -49,17 +94,3 @@ export interface Applicant {
   showUp: boolean;
 }
 
-export interface Volunteership {
-  id: string;
-  title: string;
-  status: "Open" | "Closed";
-  dateRange: string;
-  organization: string;
-  description: string;
-  logistics: string;
-  requirements: string;
-  tokenReward: number;
-  contact: string;
-  applicants: Applicant[];
-  maxParticipants: number;
-}

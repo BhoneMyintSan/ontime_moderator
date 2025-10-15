@@ -23,7 +23,6 @@ const TicketTable: React.FC<TicketTableProps> = ({
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [filters, setFilters] = useState<Record<string, string>>({});
 
   const handleRowClick = (ticketId: number, event: React.MouseEvent) => {
     // Don't navigate if the status button was clicked
@@ -33,16 +32,9 @@ const TicketTable: React.FC<TicketTableProps> = ({
     router.push(`/dashboard/tickets/${ticketId}`);
   };
 
-  const filterOptions = {
-    status: [
-      { label: "Resolved", value: "resolved" },
-      { label: "Ongoing", value: "ongoing" },
-    ],
-  };
-
   const filteredTickets = useMemo(() => {
     return tickets.filter((ticket) => {
-      // Search filter
+      // Search filter only
       const matchesSearch =
         searchQuery === "" ||
         ticket.ticket_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -54,22 +46,15 @@ const TicketTable: React.FC<TicketTableProps> = ({
           .includes(searchQuery.toLowerCase()) ||
         ticket.reporter_id.toLowerCase().includes(searchQuery.toLowerCase());
 
-      // Status filter
-      const normalizedStatus = (ticket.status ?? "ongoing").toLowerCase();
-      const matchesStatus =
-        !filters.status || normalizedStatus === filters.status;
-
-      return matchesSearch && matchesStatus;
+      return matchesSearch;
     });
-  }, [tickets, searchQuery, filters]);
+  }, [tickets, searchQuery]);
 
   return (
     <div>
       <SearchAndFilter
         searchPlaceholder="Search by ticket ID, request ID, or reporter name..."
         onSearchChange={setSearchQuery}
-        onFilterChange={setFilters}
-        filterOptions={filterOptions}
       />
 
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
@@ -126,7 +111,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
             {filteredTickets.length === 0 && (
               <tr>
                 <td colSpan={5} className="text-center py-8 text-[#b3b3c6]">
-                  {searchQuery || Object.keys(filters).length > 0
+                  {searchQuery
                     ? "No tickets match your search criteria."
                     : "No tickets found."}
                 </td>
