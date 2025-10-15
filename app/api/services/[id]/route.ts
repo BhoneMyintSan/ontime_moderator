@@ -22,11 +22,7 @@ export async function GET(
             status: true,
           },
         },
-        warning: {
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
+        warning: true,
         report: {
           include: {
             user: {
@@ -43,7 +39,6 @@ export async function GET(
         },
         _count: {
           select: {
-            warning: true,
             report: true,
           },
         },
@@ -91,6 +86,7 @@ export async function GET(
       issue_ticket: tickets,
       _count: {
         ...service._count,
+        warning: service.warning ? 1 : 0,
         issue_ticket: tickets.length,
       },
     };

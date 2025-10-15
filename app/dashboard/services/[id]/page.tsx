@@ -187,6 +187,16 @@ export default function ServiceDetailsPage() {
       return;
     }
 
+    // Check if service already has a warning
+    if (service.warning || (service.warnings && service.warnings.length > 0)) {
+      toast({
+        variant: "destructive",
+        title: "Warning Already Exists",
+        description: "This service already has a warning. Each service can only have one warning at a time.",
+      });
+      return;
+    }
+
     try {
       const requestData = {
         listing_id: parseInt(serviceId),
@@ -208,7 +218,17 @@ export default function ServiceDetailsPage() {
       console.log("Warning API response:", responseData);
 
       if (!response.ok) {
-        throw new Error(responseData.message || "Failed to add warning");
+        // Handle specific error cases
+        if (response.status === 409 || responseData.message?.includes("unique") || responseData.message?.includes("already exists")) {
+          toast({
+            variant: "destructive",
+            title: "Warning Already Exists",
+            description: "This service already has a warning. Each service can only have one warning at a time.",
+          });
+        } else {
+          throw new Error(responseData.message || "Failed to add warning");
+        }
+        return;
       }
 
       toast({
@@ -362,10 +382,11 @@ export default function ServiceDetailsPage() {
             <div className="flex flex-wrap gap-3 pt-4 border-t border-[#29294d]">
               <Button
                 onClick={() => setShowWarningDialog(true)}
-                className="bg-yellow-600 hover:bg-yellow-700"
+                disabled={!!(service.warning || (service.warnings && service.warnings.length > 0))}
+                className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                Add Warning
+                {service.warning || (service.warnings && service.warnings.length > 0) ? 'Warning Exists' : 'Add Warning'}
               </Button>
               {service.status === "active" ? (
                 <Button

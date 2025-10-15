@@ -157,7 +157,7 @@ model service_listing {
   session_duration Unsupported("interval")?
   report           report[]
   user             user                     @relation(fields: [posted_by], references: [id], onDelete: Cascade, map: "service_listings_users_fk")
-  warning          warning[]
+  warning          warning?
 }
 
 model service_request {
@@ -232,7 +232,7 @@ model warning {
   comment         String
   created_at      DateTime         @db.Timestamptz(6)
   reason          String
-  listing_id      Int
+  listing_id      Int              @unique(map: "uq_listing_id")
   service_listing service_listing  @relation(fields: [listing_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "warning_service_listing_fk")
   user            user             @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "warning_users_fk")
 }

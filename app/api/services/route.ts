@@ -13,11 +13,7 @@ export async function GET(request: NextRequest) {
             phone: true,
           },
         },
-        warning: {
-          orderBy: {
-            created_at: 'desc',
-          },
-        },
+        warning: true,
         report: {
           include: {
             user: {
@@ -33,7 +29,6 @@ export async function GET(request: NextRequest) {
         },
         _count: {
           select: {
-            warning: true,
             report: true,
           },
         },
@@ -62,6 +57,7 @@ export async function GET(request: NextRequest) {
           ...service,
           _count: {
             ...service._count,
+            warning: service.warning ? 1 : 0,
             issue_ticket: ticketCount,
           },
         };
@@ -101,6 +97,21 @@ export async function POST(request: NextRequest) {
           message: "Missing required fields: listing_id, user_id, severity, comment, and reason",
         },
         { status: 400 }
+      );
+    }
+
+    // Check if warning already exists for this listing
+    const existingWarning = await prisma.warning.findUnique({
+      where: { listing_id: parseInt(listing_id) }
+    });
+
+    if (existingWarning) {
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Warning already exists for this service. Each service can only have one warning at a time.",
+        },
+        { status: 409 }
       );
     }
 
@@ -147,6 +158,21 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error creating warning:", error);
+    
+    // Handle Prisma unique constraint violation
+    if (error && typeof error === 'object' && 'code' in error) {
+      const prismaError = error as any;
+      if (prismaError.code === 'P2002' && prismaError.meta?.target?.includes('listing_id')) {
+        return NextResponse.json(
+          {
+            status: "error",
+            message: "Warning already exists for this service. Each service can only have one warning at a time.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+    
     return NextResponse.json(
       {
         status: "error",
