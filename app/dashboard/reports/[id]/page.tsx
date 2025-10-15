@@ -228,6 +228,17 @@ export default function ReportDetail() {
                 <p className="text-[#9ca3af] text-sm mb-1">Service ID</p>
                 <p className="text-[#e0e0e0] font-mono text-sm">{report.listing_id}</p>
               </div>
+              <button
+                className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+                onClick={() => {
+                  if (report.listing_id) {
+                    router.push(`/dashboard/services/${report.listing_id}`);
+                  }
+                }}
+                disabled={!report.listing_id}
+              >
+                View Service
+              </button>
             </div>
           </div>
 

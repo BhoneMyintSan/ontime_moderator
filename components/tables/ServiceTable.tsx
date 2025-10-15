@@ -5,7 +5,7 @@ import SearchAndFilter from "../SearchAndFilter";
 import Pagination from "../Pagination";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Eye, Users } from "lucide-react";
+import { AlertTriangle, Clock, Eye, Users, Ticket } from "lucide-react";
 import Link from "next/link";
 
 interface ServiceTableProps {
@@ -78,6 +78,7 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Status</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Warnings</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Reports</th>
+                <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Tickets</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Posted</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Actions</th>
               </tr>
@@ -129,6 +130,14 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                       <Users className="w-4 h-4 text-blue-400" />
                       <span className="font-medium text-blue-400">
                         {service._count?.reports || service._count?.report || 0}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-6">
+                    <div className="flex items-center gap-2">
+                      <Ticket className="w-4 h-4 text-purple-400" />
+                      <span className="font-medium text-purple-400">
+                        {(service._count as any)?.issue_ticket || 0}
                       </span>
                     </div>
                   </td>
@@ -200,6 +209,13 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                 <div className="flex items-center gap-1">
                   <Users className="w-4 h-4 text-blue-400" />
                   <span className="font-medium text-blue-400">{service._count?.reports || service._count?.report || 0}</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#b3b3c6]">Tickets:</span>
+                <div className="flex items-center gap-1">
+                  <Ticket className="w-4 h-4 text-purple-400" />
+                  <span className="font-medium text-purple-400">{(service._count as any)?.issue_ticket || 0}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">

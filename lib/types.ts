@@ -19,11 +19,20 @@ export interface ApiResponse<T> {
 
 export interface Report {
   id: number;
-  reporter_name: string;
-  service_listing_id: number;
-  reason: string;
+  reporter_name?: string;
+  service_listing_id?: number;
+  listing_id?: number;
+  reason?: string;
+  report_reason?: string;
   status: "Resolved" | "Unresolved";
-  created_at: string;
+  created_at?: string;
+  datetime?: string;
+  reporter_id?: string;
+  additional_detail?: string;
+  users?: {
+    id?: string;
+    full_name?: string;
+  };
 }
 
 export interface Ticket {
@@ -53,13 +62,19 @@ export interface ServiceListing {
   };
   warnings?: ServiceWarning[];
   reports?: Report[];
+  tickets?: Ticket[];
   warning?: ServiceWarning[];  // Alternative field name from Prisma
   report?: Report[];           // Alternative field name from Prisma
+  ticket?: Ticket[];           // Alternative field name from Prisma
+  issue_ticket?: Ticket[];     // Database field name from Prisma
   _count?: {
     warnings?: number;
     reports?: number;
+    tickets?: number;
     warning?: number;   // Alternative field name from Prisma
     report?: number;    // Alternative field name from Prisma
+    ticket?: number;    // Alternative field name from Prisma
+    issue_ticket?: number; // Database field name from Prisma
   };
 }
 

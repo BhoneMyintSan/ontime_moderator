@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import ServiceTable from "@/components/tables/ServiceTable";
 import { ServiceListing } from "@/lib/types";
-import { Wrench, AlertTriangle, CheckCircle, Clock, Users } from "lucide-react";
+import { Wrench, AlertTriangle, CheckCircle, Clock, Users, Ticket } from "lucide-react";
 
 export default function ServicesPage() {
   const [services, setServices] = useState<ServiceListing[]>([]);
@@ -41,6 +41,10 @@ export default function ServicesPage() {
     const reportCount = s._count?.reports || s._count?.report || 0;
     return reportCount > 0;
   }).length;
+  const servicesWithTickets = services.filter(s => {
+    const ticketCount = (s._count as any)?.issue_ticket || 0;
+    return ticketCount > 0;
+  }).length;
   const totalWarnings = services.reduce((sum, s) => {
     const warningCount = s._count?.warnings || s._count?.warning || 0;
     return sum + (typeof warningCount === 'number' ? warningCount : 0);
@@ -49,6 +53,10 @@ export default function ServicesPage() {
     const reportCount = s._count?.reports || s._count?.report || 0;
     return sum + (typeof reportCount === 'number' ? reportCount : 0);
   }, 0);
+  const totalTickets = services.reduce((sum, s) => {
+    const ticketCount = (s._count as any)?.issue_ticket || 0;
+    return sum + (typeof ticketCount === 'number' ? ticketCount : 0);
+  }, 0);
 
   // Filter tabs configuration
   const filterTabs = [
@@ -56,6 +64,7 @@ export default function ServicesPage() {
     { label: "Active", key: "active", count: activeServices },
     { label: "Suspended", key: "suspended", count: suspendedServices },
     { label: "With Reports", key: "reports", count: servicesWithReports },
+    { label: "With Tickets", key: "tickets", count: servicesWithTickets },
   ];
 
   // Filter services based on active tab
@@ -67,6 +76,11 @@ export default function ServicesPage() {
         return services.filter(service => {
           const reportCount = service._count?.reports || service._count?.report || 0;
           return reportCount > 0;
+        });
+      case "tickets":
+        return services.filter(service => {
+          const ticketCount = (service._count as any)?.issue_ticket || 0;
+          return ticketCount > 0;
         });
       default:
         return services.filter(service => service.status === activeTab);
@@ -202,6 +216,17 @@ export default function ServicesPage() {
             </div>
             <div className="text-4xl font-bold text-purple-400">{totalReports}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">User reports filed</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Issue Tickets</span>
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Ticket className="w-5 h-5 text-orange-400" />
+              </div>
+            </div>
+            <div className="text-4xl font-bold text-orange-400">{totalTickets}</div>
+            <p className="text-xs text-[#e0e0e0] mt-1">Service issues</p>
           </div>
         </div>
 

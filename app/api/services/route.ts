@@ -43,9 +43,34 @@ export async function GET(request: NextRequest) {
       },
     });
 
+    // Fetch ticket counts for each service
+    const servicesWithTickets = await Promise.all(
+      services.map(async (service) => {
+        const serviceRequests = await prisma.service_request.findMany({
+          where: { listing_id: service.id },
+          include: {
+            request_report: true,
+          },
+        });
+
+        const ticketCount = serviceRequests.reduce(
+          (total, request) => total + request.request_report.length, 
+          0
+        );
+
+        return {
+          ...service,
+          _count: {
+            ...service._count,
+            issue_ticket: ticketCount,
+          },
+        };
+      })
+    );
+
     return NextResponse.json({
       status: "success",
-      data: services,
+      data: servicesWithTickets,
     });
   } catch (error) {
     console.error("Error fetching services:", error);

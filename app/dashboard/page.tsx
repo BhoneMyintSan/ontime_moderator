@@ -9,16 +9,19 @@ import {
   Gift,
   Activity,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Wrench
 } from "lucide-react";
 
 interface DashboardStats {
   totalUsers: number;
   totalReports: number;
   totalTickets: number;
+  totalServices: number;
   activeUsers: number;
   pendingReports: number;
   resolvedTickets: number;
+  activeServices: number;
 }
 
 export default function DashboardPage() {
@@ -27,32 +30,38 @@ export default function DashboardPage() {
     totalUsers: 0,
     totalReports: 0,
     totalTickets: 0,
+    totalServices: 0,
     activeUsers: 0,
     pendingReports: 0,
     resolvedTickets: 0,
+    activeServices: 0,
   });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const [usersRes, reportsRes, ticketsRes] = await Promise.all([
+        const [usersRes, reportsRes, ticketsRes, servicesRes] = await Promise.all([
           fetch('/api/users').then(r => r.ok ? r.json() : { data: [] }),
           fetch('/api/reports').then(r => r.ok ? r.json() : { data: [] }),
           fetch('/api/tickets').then(r => r.ok ? r.json() : { data: [] }),
+          fetch('/api/services').then(r => r.ok ? r.json() : { data: [] }),
         ]);
 
         const users = usersRes.data || [];
         const reports = reportsRes.data || [];
         const tickets = ticketsRes.data || [];
+        const services = servicesRes.data || [];
 
         setStats({
           totalUsers: users.length,
           totalReports: reports.length,
           totalTickets: tickets.length,
+          totalServices: services.length,
           activeUsers: users.filter((u: any) => u.account_status === 'Active').length,
           pendingReports: reports.filter((r: any) => r.status === 'Pending').length,
           resolvedTickets: tickets.filter((t: any) => t.status === 'Resolved').length,
+          activeServices: services.filter((s: any) => s.status === 'Active').length,
         });
       } catch (error) {
         console.error('Error fetching stats:', error);
@@ -98,7 +107,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Main Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Users */}
           <button
             onClick={() => router.push('/dashboard/users')}
@@ -111,10 +120,6 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-4xl font-bold text-white mb-2">{stats.totalUsers}</div>
-            <div className="flex items-center gap-2 text-xs">
-              <Activity className="w-3 h-3 text-green-400" />
-              <span className="text-green-400 font-medium">{stats.activeUsers} Active</span>
-            </div>
           </button>
 
           {/* Total Reports */}
@@ -129,10 +134,6 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-4xl font-bold text-white mb-2">{stats.totalReports}</div>
-            <div className="flex items-center gap-2 text-xs">
-              <Clock className="w-3 h-3 text-amber-400" />
-              <span className="text-amber-400 font-medium">{stats.pendingReports} Pending</span>
-            </div>
           </button>
 
           {/* Total Tickets */}
@@ -147,10 +148,20 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="text-4xl font-bold text-white mb-2">{stats.totalTickets}</div>
-            <div className="flex items-center gap-2 text-xs">
-              <CheckCircle className="w-3 h-3 text-green-400" />
-              <span className="text-green-400 font-medium">{stats.resolvedTickets} Resolved</span>
+          </button>
+
+          {/* Total Services */}
+          <button
+            onClick={() => router.push('/dashboard/services')}
+            className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] hover:border-orange-500/50 transition-all duration-300 shadow-xl hover:shadow-orange-500/20 text-left"
+          >
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Total Services</span>
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Wrench className="w-5 h-5 text-orange-400" />
+              </div>
             </div>
+            <div className="text-4xl font-bold text-white mb-2">{stats.totalServices}</div>
           </button>
 
         </div>
@@ -213,6 +224,19 @@ export default function DashboardPage() {
               <div className="text-left">
                 <p className="text-white font-medium text-base">Manage Rewards</p>
                 <p className="text-[#9ca3af] text-sm">Create rewards</p>
+              </div>
+            </button>
+
+            <button
+              onClick={() => router.push('/dashboard/services')}
+              className="p-6 bg-[#1f1f33] rounded-xl border border-[#29294d] hover:bg-[#252540] hover:border-orange-500/50 transition-all duration-300 flex items-center gap-4 group"
+            >
+              <div className="w-12 h-12 rounded-lg bg-orange-500/10 group-hover:bg-orange-500/20 flex items-center justify-center transition-colors">
+                <Wrench className="w-6 h-6 text-orange-400" />
+              </div>
+              <div className="text-left">
+                <p className="text-white font-medium text-base">Manage Services</p>
+                <p className="text-[#9ca3af] text-sm">Monitor service listings</p>
               </div>
             </button>
 

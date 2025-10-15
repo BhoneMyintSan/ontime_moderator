@@ -3,10 +3,11 @@ import prisma from "@/lib/prisma";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const serviceId = parseInt(params.id);
+    const resolvedParams = await params;
+    const serviceId = parseInt(resolvedParams.id);
 
     const service = await prisma.service_listing.findUnique({
       where: {
@@ -59,9 +60,44 @@ export async function GET(
       );
     }
 
+    // Fetch related tickets through service requests
+    const serviceRequests = await prisma.service_request.findMany({
+      where: {
+        listing_id: serviceId,
+      },
+      include: {
+        request_report: {
+          orderBy: {
+            created_at: 'desc',
+          },
+        },
+      },
+    });
+
+    // Extract all tickets from service requests
+    const tickets = serviceRequests.flatMap(request => 
+      request.request_report.map(ticket => ({
+        ...ticket,
+        listing_id: serviceId,
+        request_id: request.id,
+        requester_name: null, // Will need to fetch user data if needed
+        provider_name: null,
+      }))
+    );
+
+    // Add tickets to service data
+    const serviceWithTickets = {
+      ...service,
+      issue_ticket: tickets,
+      _count: {
+        ...service._count,
+        issue_ticket: tickets.length,
+      },
+    };
+
     return NextResponse.json({
       status: "success",
-      data: service,
+      data: serviceWithTickets,
     });
   } catch (error) {
     console.error("Error fetching service:", error);
@@ -78,10 +114,11 @@ export async function GET(
 // PUT: Update service status (suspend/activate)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const serviceId = parseInt(params.id);
+    const resolvedParams = await params;
+    const serviceId = parseInt(resolvedParams.id);
     const body = await request.json();
     const { status, reason } = body;
 
