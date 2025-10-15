@@ -7,7 +7,7 @@ import { emit } from "../../../lib/pusher";
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { user_id, severity, reason, comment } = body || {};
+    const { user_id, severity, reason, comment,listing_id,created_at } = body || {};
 
     if (!user_id || !severity || !reason) {
       return NextResponse.json(
@@ -29,7 +29,8 @@ export async function POST(req: Request) {
         severity,
         reason,
         comment: comment ?? '',
-        created_at: new Date(),
+        listing_id:listing_id,
+        created_at: created_at,
       },
     });
 
