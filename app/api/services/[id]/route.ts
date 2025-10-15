@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { emit } from "@/lib/pusher";
 
 export async function GET(
   request: NextRequest,
@@ -107,8 +108,8 @@ export async function GET(
   }
 }
 
-// PUT: Update service status (suspend/activate)
-export async function PUT(
+// POST: Issue warning or update service status
+export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -116,64 +117,171 @@ export async function PUT(
     const resolvedParams = await params;
     const serviceId = parseInt(resolvedParams.id);
     const body = await request.json();
-    const { status, reason } = body;
+    const { status, reason, severity } = body;
 
-    // Validate required fields
-    if (!status) {
+    // Validate: need either status or reason
+    if (!status && !reason) {
       return NextResponse.json(
         {
           status: "error",
-          message: "Status is required",
+          message: "Either status or reason is required",
         },
         { status: 400 }
       );
     }
 
-    // Update service status
-    const updatedService = await prisma.service_listing.update({
-      where: {
-        id: serviceId,
-      },
-      data: {
-        status,
-      },
-      include: {
-        user: {
-          select: {
-            id: true,
-            full_name: true,
+    const result = await prisma.$transaction(async (tx) => {
+      const service = await tx.service_listing.findUnique({
+        where: { id: serviceId },
+        include: {
+          user: {
+            select: {
+              id: true,
+              full_name: true,
+            },
           },
         },
-      },
+      });
+
+      if (!service) {
+        throw new Error("Service not found");
+      }
+
+      let updatedService = service;
+
+
+      if (status === "suspended") {
+        updatedService = await tx.service_listing.update({
+          where: { id: serviceId },
+          data: { status: "suspended" },
+          include: {
+            user: {
+              select: {
+                id: true,
+                full_name: true,
+              },
+            },
+          },
+        });
+      }
+
+
+      if (reason) {
+        const warningSeverity = severity || (status === "suspended" ? "severe" : "mild");
+        const eventDescription = status === "suspended" ? "suspension" : "warning";
+
+        console.log("Creating event with data:", {
+          target_id: serviceId,
+          type: "listing",
+          description: eventDescription,
+        });
+
+        try {
+          const event = await tx.event.create({
+            data: {
+              target_id: serviceId,
+              type: "listing",
+              description: eventDescription,
+              created_at: new Date(),
+            },
+          });
+
+          console.log("Event created:", event);
+
+          console.log("Creating warning with data:", {
+            listing_id: serviceId,
+            user_id: service.posted_by,
+            severity: warningSeverity,
+            reason: reason,
+          });
+
+          const warning = await tx.warning.create({
+            data: {
+              listing_id: serviceId,
+              user_id: service.posted_by,
+              severity: warningSeverity,
+              reason: reason,
+              created_at: new Date(),
+            },
+          });
+
+          console.log("Warning created:", warning);
+
+          const notificationMessage = status === "suspended"
+            ? `Your service listing "${service.title}" has been suspended. Reason: ${reason}`
+            : `Your service listing "${service.title}" has received a warning. Reason: ${reason}`;
+
+          console.log("Creating notification with data:", {
+            message: notificationMessage,
+            recipient_user_id: service.posted_by,
+            event_id: event.id,
+          });
+
+          const notification = await tx.notification.create({
+            data: {
+              message: notificationMessage,
+              recipient_user_id: service.posted_by,
+              action_user_id: null,
+              event_id: event.id,
+              is_read: false,
+            },
+          });
+
+          console.log("Notification created:", notification);
+
+          // Return data for Pusher emit (will be done outside transaction)
+          return { 
+            updatedService, 
+            pusherData: {
+              userId: service.posted_by,
+              message: notificationMessage,
+              eventType: eventDescription,
+              serviceId: serviceId,
+              severity: warningSeverity,
+            }
+          };
+        } catch (innerError) {
+          console.error("Error in transaction inner block:", innerError);
+          throw innerError;
+        }
+      }
+
+      return { updatedService, pusherData: null };
     });
 
-    // If suspending and reason provided, add a warning
-    if (status === "suspended" && reason) {
-      await prisma.warning.create({
-        data: {
-          listing_id: serviceId,
-          user_id: updatedService.posted_by,
-          severity: "severe",
-          comment: reason,
-          reason: "Service Suspension",
-          created_at: new Date(),
-        },
-      });
+    // Emit Pusher events after transaction is committed
+    if (result.pusherData) {
+      try {
+        await emit(`user-${result.pusherData.userId}`, "new-notification", {
+          message: result.pusherData.message,
+          event_type: result.pusherData.eventType,
+          service_id: result.pusherData.serviceId,
+          severity: result.pusherData.severity,
+        });
+        console.log("Pusher event emitted successfully");
+      } catch (pusherError) {
+        console.error("Failed to emit Pusher event:", pusherError);
+        // Don't fail the request if Pusher fails
+      }
     }
 
     return NextResponse.json({
       status: "success",
-      data: updatedService,
-      message: `Service ${status} successfully`,
+      data: result.updatedService,
+      message: status === "suspended" 
+        ? "Service suspended successfully" 
+        : "Warning issued successfully",
     });
   } catch (error) {
     console.error("Error updating service:", error);
     return NextResponse.json(
       {
         status: "error",
-        message: "Failed to update service",
+        message: error instanceof Error && error.message === "Service not found"
+          ? "Service not found"
+          : "Failed to update service",
       },
-      { status: 500 }
+      { status: error instanceof Error && error.message === "Service not found" ? 404 : 500 }
     );
   }
 }

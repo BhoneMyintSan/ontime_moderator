@@ -229,7 +229,6 @@ model warning {
   id              Int              @id(map: "warning_pk") @default(autoincrement())
   user_id         String
   severity        warning_severity
-  comment         String
   created_at      DateTime         @db.Timestamptz(6)
   reason          String
   listing_id      Int              @unique(map: "uq_listing_id")

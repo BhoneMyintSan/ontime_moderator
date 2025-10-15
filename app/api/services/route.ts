@@ -86,15 +86,15 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("Received warning creation request:", body);
     
-    const { listing_id, user_id, severity, comment, reason } = body;
+    const { listing_id, user_id, severity, reason } = body;
 
     // Validate required fields
-    if (!listing_id || !user_id || !severity || !comment || !reason) {
-      console.log("Missing fields:", { listing_id, user_id, severity, comment, reason });
+    if (!listing_id || !user_id || !severity || !reason) {
+      console.log("Missing fields:", { listing_id, user_id, severity, reason });
       return NextResponse.json(
         {
           status: "error",
-          message: "Missing required fields: listing_id, user_id, severity, comment, and reason",
+          message: "Missing required fields: listing_id, user_id, severity, and reason",
         },
         { status: 400 }
       );
@@ -120,7 +120,6 @@ export async function POST(request: NextRequest) {
       listing_id: parseInt(listing_id),
       user_id,
       severity,
-      comment,
       reason,
     });
 
@@ -129,7 +128,6 @@ export async function POST(request: NextRequest) {
         listing_id: parseInt(listing_id),
         user_id,
         severity,
-        comment,
         reason,
         created_at: new Date(),
       },

@@ -28,7 +28,6 @@ export async function POST(req: Request) {
         user_id,
         severity,
         reason,
-        comment: comment ?? '',
         listing_id:listing_id,
         created_at: created_at,
       },
