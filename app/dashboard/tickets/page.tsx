@@ -7,6 +7,8 @@ interface IssueTicket {
   id: number;
   reporter_id: string;
   reporter_name: string;
+  provider_name: string;
+  provider_id: string;
   request_id: number;
   created_at: string;
   ticket_id: string;

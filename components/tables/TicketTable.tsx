@@ -6,6 +6,8 @@ interface Ticket {
   id: number;
   reporter_id: string;
   reporter_name: string;
+  provider_name: string;
+  provider_id: string;
   request_id: number;
   created_at: string; // ISO string
   ticket_id: string;
@@ -44,6 +46,9 @@ const TicketTable: React.FC<TicketTableProps> = ({
         ticket.reporter_name
           .toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
+        ticket.provider_name
+          .toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
         ticket.reporter_id.toLowerCase().includes(searchQuery.toLowerCase());
 
       return matchesSearch;
@@ -53,24 +58,26 @@ const TicketTable: React.FC<TicketTableProps> = ({
   return (
     <div>
       <SearchAndFilter
-        searchPlaceholder="Search by ticket ID, request ID, or reporter name..."
+        searchPlaceholder="Search by ticket ID, request ID, reporter, or provider..."
         onSearchChange={setSearchQuery}
       />
 
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
-        <table className="hidden md:table min-w-[650px] w-full table-fixed">
+        <table className="hidden md:table min-w-[800px] w-full table-fixed">
           <colgroup>
+            <col style={{ width: "15%" }} />
+            <col style={{ width: "15%" }} />
             <col style={{ width: "20%" }} />
             <col style={{ width: "20%" }} />
-            <col style={{ width: "25%" }} />
-            <col style={{ width: "20%" }} />
+            <col style={{ width: "15%" }} />
             <col style={{ width: "15%" }} />
           </colgroup>
           <thead>
             <tr className="text-[#b3b3c6] text-left text-lg">
               <th className="py-4 px-3 sm:px-6 font-semibold">Ticket ID</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Request ID</th>
-              <th className="py-4 px-3 sm:px-6 font-semibold">Reporter Name</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold">Reporter</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold">Provider</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Created</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Status</th>
             </tr>
@@ -85,6 +92,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
                 <td className="py-3 px-3 sm:px-6">{t.ticket_id}</td>
                 <td className="py-3 px-3 sm:px-6">{t.request_id}</td>
                 <td className="py-3 px-3 sm:px-6">{t.reporter_name}</td>
+                <td className="py-3 px-3 sm:px-6">{t.provider_name}</td>
                 <td className="py-3 px-3 sm:px-6">
                   {new Date(t.created_at).toISOString().split("T")[0]}
                 </td>
@@ -110,7 +118,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
             ))}
             {filteredTickets.length === 0 && (
               <tr>
-                <td colSpan={5} className="text-center py-8 text-[#b3b3c6]">
+                <td colSpan={6} className="text-center py-8 text-[#b3b3c6]">
                   {searchQuery
                     ? "No tickets match your search criteria."
                     : "No tickets found."}
@@ -123,7 +131,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
       {/* Mobile (card) layout */}
       <div className="md:hidden space-y-3">
         {filteredTickets.map(t => (
-          <div key={t.id} onClick={(e) => handleRowClick(t.id, e)} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 shadow hover:bg-[#252540] transition">
+          <div key={t.id} onClick={(e) => handleRowClick(t.id, e)} className="bg-[#23233a] border border-[#29294d] rounded-lg p-4 flex flex-col gap-2 shadow hover:bg-[#252540] transition cursor-pointer">
             <div className="flex items-center justify-between">
               <span className="text-white font-semibold">Ticket #{t.ticket_id}</span>
               <button
@@ -133,10 +141,13 @@ const TicketTable: React.FC<TicketTableProps> = ({
                 {(t.status ?? 'ongoing').toLowerCase() === 'resolved' ? 'Resolved' : 'Ongoing'}
               </button>
             </div>
-            <div className="text-[#b3b3c6] text-sm flex flex-wrap gap-x-4 gap-y-1">
-              <span><span className="text-[#8b8ba3]">Request:</span> {t.request_id}</span>
-              <span><span className="text-[#8b8ba3]">Reporter:</span> {t.reporter_name}</span>
-              <span><span className="text-[#8b8ba3]">Date:</span> {new Date(t.created_at).toISOString().split('T')[0]}</span>
+            <div className="text-[#b3b3c6] text-sm flex flex-col gap-1">
+              <div className="flex flex-wrap gap-x-4">
+                <span><span className="text-[#8b8ba3]">Request:</span> {t.request_id}</span>
+                <span><span className="text-[#8b8ba3]">Date:</span> {new Date(t.created_at).toISOString().split('T')[0]}</span>
+              </div>
+              <div><span className="text-[#8b8ba3]">Reporter:</span> {t.reporter_name}</div>
+              <div><span className="text-[#8b8ba3]">Provider:</span> {t.provider_name}</div>
             </div>
           </div>
         ))}

@@ -62,8 +62,13 @@ export default function ServiceDetailsPage() {
       const serviceData = data.data;
       if (serviceData) {
         // Handle potential field name mismatches from Prisma
-        serviceData.warnings =
-          serviceData.warnings || serviceData.warning || [];
+        // Convert single warning object to array format
+        if (serviceData.warning && !Array.isArray(serviceData.warning)) {
+          serviceData.warnings = [serviceData.warning];
+        } else {
+          serviceData.warnings = serviceData.warnings || [];
+        }
+        
         serviceData.reports = serviceData.reports || serviceData.report || [];
         serviceData.tickets =
           serviceData.tickets ||
@@ -78,10 +83,9 @@ export default function ServiceDetailsPage() {
             reports: serviceData.reports?.length || 0,
             tickets: serviceData.tickets?.length || 0,
           };
-        }
-
-        // Also handle _count field name variations
-        if (serviceData._count) {
+        } else {
+          // Update warning count based on actual warnings array
+          serviceData._count.warnings = serviceData.warnings?.length || 0;
           serviceData._count.tickets =
             serviceData._count.tickets ||
             serviceData._count.ticket ||
@@ -511,49 +515,102 @@ export default function ServiceDetailsPage() {
 
         {/* Warnings Section */}
         <div className="bg-[#1f1f33] rounded-2xl border border-[#29294d] p-6">
-          <h3 className="text-lg font-semibold text-white mb-4">
-            Warnings History
-          </h3>
-          {(service.warnings || service.warning) &&
-          (service.warnings?.length || service.warning?.length || 0) > 0 ? (
+          <div className="flex items-center justify-between mb-6">
+            <h3 className="text-lg font-semibold text-white">
+              Warnings History
+            </h3>
+            <div className="flex items-center gap-2 text-sm text-[#b3b3c6]">
+              <AlertTriangle className="w-4 h-4" />
+              <span>
+                {service.warnings?.length || 0} Warning{service.warnings?.length !== 1 ? 's' : ''}
+              </span>
+            </div>
+          </div>
+          
+          {service.warnings && service.warnings.length > 0 ? (
             <div className="space-y-4">
-              {(service.warnings || service.warning || []).map((warning) => (
+              {service.warnings.map((warning: any, index: number) => (
                 <div
                   key={warning.id}
-                  className="bg-[#252540] rounded-lg border border-[#29294d] p-4"
+                  className="bg-gradient-to-r from-[#252540] to-[#2a2550] rounded-lg border border-[#29294d] hover:border-[#383862] transition-all duration-200 p-5"
                 >
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle
-                        className={`w-4 h-4 ${getSeverityColor(
-                          warning.severity
-                        )}`}
-                      />
-                      <span
-                        className={`font-medium capitalize ${getSeverityColor(
-                          warning.severity
-                        )}`}
-                      >
-                        {warning.severity} Warning
-                      </span>
+                  {/* Warning Header */}
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full ${warning.severity === 'severe' ? 'bg-red-500/20' : 'bg-yellow-500/20'} flex items-center justify-center`}>
+                        <AlertTriangle
+                          className={`w-4 h-4 ${getSeverityColor(warning.severity)}`}
+                        />
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className={`font-semibold capitalize ${getSeverityColor(warning.severity)}`}>
+                            {warning.severity} Warning
+                          </span>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs px-2 py-1 ${
+                              warning.severity === 'severe'
+                                ? "bg-red-500/20 border-red-500/50 text-red-300"
+                                : "bg-yellow-500/20 border-yellow-500/50 text-yellow-300"
+                            }`}
+                          >
+                            {warning.severity === 'severe' ? 'High Priority' : 'Low Priority'}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-[#9ca3af] mt-1">
+                          Issued on{" "}
+                          {new Date(warning.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "long",
+                            day: "numeric",
+                          })}{" "}
+                          at{" "}
+                          {new Date(warning.created_at).toLocaleTimeString("en-US", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </p>
+                      </div>
                     </div>
-                    <span className="text-sm text-[#b3b3c6]">
-                      {new Date(warning.created_at).toLocaleString()}
-                    </span>
                   </div>
-                  <div className="mb-2">
-                    <span className="font-medium text-white">Reason: </span>
-                    <span className="text-[#e0e0e0]">{warning.reason}</span>
+
+                  {/* Warning Content */}
+                  <div className="bg-[#1f1f33] rounded-lg p-4 border border-[#29294d]">
+                    <div className="flex items-start gap-2">
+                      <FileText className="w-4 h-4 text-indigo-400 mt-0.5" />
+                      <div className="flex-1">
+                        <span className="text-sm font-medium text-white block mb-1">
+                          Reason for Warning:
+                        </span>
+                        <p className="text-sm text-[#b3b3c6] leading-relaxed">
+                          {warning.reason || "No reason provided"}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Warning Footer */}
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-[#29294d]">
+                    <div className="flex items-center gap-4 text-xs text-[#9ca3af]">
+                      <span>Warning ID: {warning.id}</span>
+                      <span>•</span>
+                      <span>Issued to User ID: {warning.user_id}</span>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-8">
-              <AlertTriangle className="w-12 h-12 text-[#6b7280] mx-auto mb-3" />
-              <p className="text-[#e0e0e0] font-medium">No warnings issued</p>
-              <p className="text-[#9ca3af] text-sm">
-                This service has a clean record
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-green-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="w-8 h-8 text-green-400" />
+              </div>
+              <p className="text-[#e0e0e0] font-semibold text-lg mb-2">
+                No Warnings Issued
+              </p>
+              <p className="text-[#9ca3af] text-sm max-w-md mx-auto">
+                This service has a clean record with no warnings from moderators.
               </p>
             </div>
           )}

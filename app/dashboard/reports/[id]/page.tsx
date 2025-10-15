@@ -2,8 +2,16 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { AlertTriangle, User, FileText, Calendar, Shield, MessageSquare } from 'lucide-react';
+import { AlertTriangle, User, FileText, Calendar, Shield, MessageSquare, Ban, CheckCircle } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function ReportDetail() {
   const { id } = useParams();
@@ -12,6 +20,8 @@ export default function ReportDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [serviceStopped, setServiceStopped] = useState(false);
+  const [showSuspendDialog, setShowSuspendDialog] = useState(false);
+  const [suspendReason, setSuspendReason] = useState('');
 
   useEffect(() => {
     if (!id || Array.isArray(id)) {
@@ -129,31 +139,36 @@ export default function ReportDetail() {
                 </p>
               </div>
             </div>
-            <button
-              className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-                report.status === "Resolved" 
-                  ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30" 
-                  : "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30"
-              }`}
-              onClick={async () => {
-                if (!id || Array.isArray(id)) return;
-                const newStatus = report.status === "Resolved" ? "Unresolved" : "Resolved";
-                try {
-                  const res = await fetch(`/api/reports/${id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus }),
-                  });
-                  if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                  const json = await res.json();
-                  if (json.status === "success") setReport(json.data);
-                } catch (error) {
-                  console.error("Failed to update report status:", error);
-                }
-              }}
-            >
-              {report.status}
-            </button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="text-sm text-[#9ca3af]">Status</div>
+              <select
+                value={report.status}
+                onChange={async (e) => {
+                  const newStatus = e.target.value;
+                  if (!id || Array.isArray(id)) return;
+                  try {
+                    const res = await fetch(`/api/reports/${id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ status: newStatus }),
+                    });
+                    if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+                    const json = await res.json();
+                    if (json.status === "success") setReport(json.data);
+                  } catch (error) {
+                    console.error("Failed to update report status:", error);
+                  }
+                }}
+                className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 ${
+                  report.status === "Resolved" 
+                    ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400" 
+                    : "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 border-red-400"
+                }`}
+              >
+                <option value="Unresolved" className="bg-[#1f1f33] text-white">Unresolved</option>
+                <option value="Resolved" className="bg-[#1f1f33] text-white">Resolved</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -292,17 +307,40 @@ export default function ReportDetail() {
         <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d]">
           <h3 className="text-lg font-semibold text-white mb-4">Moderator Actions</h3>
           <div className="flex flex-col sm:flex-row flex-wrap gap-3">
-            <button
-              className={`px-6 py-3 rounded-lg font-medium shadow-lg transition-all hover:scale-105 ${
-                serviceStopped
-                  ? "bg-yellow-500 hover:bg-yellow-600 text-black shadow-yellow-500/30"
-                  : "bg-red-500 hover:bg-red-600 text-white shadow-red-500/30"
-              }`}
-              onClick={() => setServiceStopped(!serviceStopped)}
-            >
-              {serviceStopped ? "Undo Suspend Service" : "Suspend Service"}
-            </button>
+            {!serviceStopped ? (
+              <Button
+                onClick={() => setShowSuspendDialog(true)}
+                variant="destructive"
+              >
+                <Ban className="w-4 h-4 mr-2" />
+                Suspend Service
+              </Button>
+            ) : (
+              <Button
+                onClick={() => {
+                  setServiceStopped(false);
+                  setSuspendReason('');
+                }}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <CheckCircle className="w-4 h-4 mr-2" />
+                Activate Service
+              </Button>
+            )}
           </div>
+          {serviceStopped && (
+            <div className="mt-4 bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4">
+              <p className="text-yellow-400 font-medium flex items-center gap-2">
+                <Shield className="w-5 h-5" />
+                Service has been suspended.
+              </p>
+              {suspendReason && (
+                <p className="text-yellow-300 text-sm mt-2">
+                  Reason: {suspendReason}
+                </p>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Back Button */}
@@ -327,16 +365,48 @@ export default function ReportDetail() {
             </svg>
             Back to Reports
           </Button>
-          {serviceStopped && (
-            <div className="mt-4 bg-green-500/10 border border-green-500/30 rounded-lg p-4">
-              <p className="text-green-400 font-medium flex items-center gap-2">
-                <Shield className="w-5 h-5" />
-                Service has been suspended for this user.
-              </p>
-            </div>
-          )}
         </div>
       </div>
+
+      {/* Suspend Service Dialog */}
+      <Dialog open={showSuspendDialog} onOpenChange={setShowSuspendDialog}>
+        <DialogContent className="bg-[#1f1f33] border-[#29294d]">
+          <DialogHeader>
+            <DialogTitle className="text-white">Suspend Service</DialogTitle>
+            <DialogDescription className="text-[#b3b3c6]">
+              Are you sure you want to suspend &quot;{report?.service_listings?.title}&quot;?
+              Please provide a reason for this action.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <textarea
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+              placeholder="Enter reason for suspension..."
+              className="w-full h-24 px-4 py-3 bg-[#252540] border border-[#29294d] rounded-lg text-white placeholder:text-[#6b7280] focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 resize-none"
+            />
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSuspendDialog(false)}
+              className="border-[#29294d] text-[#0d0c0c] hover:bg-[#29294d] hover:text-white"
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => {
+                setServiceStopped(true);
+                setShowSuspendDialog(false);
+              }}
+              disabled={!suspendReason.trim()}
+            >
+              Suspend Service
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

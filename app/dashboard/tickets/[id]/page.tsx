@@ -189,16 +189,37 @@ export default function TicketDetailPage() {
                 </p>
               </div>
             </div>
-            <button
-              className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all ${
-                status === "resolved" 
-                  ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30" 
-                  : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30"
-              }`}
-              onClick={toggleStatus}
-            >
-              {status === "resolved" ? "Resolved" : "Ongoing"}
-            </button>
+            <div className="flex flex-col items-end gap-2">
+              <div className="text-sm text-[#9ca3af]">Status</div>
+              <select
+                value={status}
+                onChange={(e) => {
+                  const newStatus = e.target.value;
+                  setStatus(newStatus);
+                  if (!id || Array.isArray(id)) return;
+                  fetch(`/api/tickets/${id}`, {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status: newStatus }),
+                  })
+                    .then(res => res.json())
+                    .then(json => {
+                      if (json.status === "success" && ticket) {
+                        setTicket({ ...ticket, status: newStatus });
+                      }
+                    })
+                    .catch(error => console.error("Failed to update ticket status:", error));
+                }}
+                className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 ${
+                  status === "resolved" 
+                    ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400" 
+                    : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 border-orange-400"
+                }`}
+              >
+                <option value="ongoing" className="bg-[#1f1f33] text-white">Ongoing</option>
+                <option value="resolved" className="bg-[#1f1f33] text-white">Resolved</option>
+              </select>
+            </div>
           </div>
         </div>
 

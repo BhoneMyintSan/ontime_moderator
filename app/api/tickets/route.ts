@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
 import prisma from '../../../lib/prisma';
-import { getAllTickets } from "../../../lib/generated/prisma/sql/getAllTickets";
 
 interface TicketData {
   id:number;
   reporter_id: string;
   reporter_name: string;
+  provider_name: string;
+  provider_id: string;
   request_id: number;
   created_at:string;
   ticket_id:string;
@@ -14,7 +15,18 @@ interface TicketData {
 
 export async function GET() {
   try {
-    const rows = await prisma.$queryRawTyped(getAllTickets());
+    // Use raw SQL query to get tickets with provider information
+    const rows = await prisma.$queryRaw`
+      SELECT r.*,
+             u1.full_name as reporter_name,
+             u2.full_name as provider_name,
+             sr.provider_id
+      FROM request_report r
+      JOIN "user" u1 ON u1.id = r.reporter_id
+      JOIN service_request sr ON sr.id = r.request_id
+      JOIN "user" u2 ON u2.id = sr.provider_id
+      ORDER BY r.created_at DESC
+    `;
 
     const transformed = (rows as any[]).map((r) => {
       const rawStatus = (r.status ?? r.status_detail ?? '').toString().toLowerCase();
@@ -31,6 +43,8 @@ export async function GET() {
         id: idNum,
         reporter_id: r.reporter_id ?? '',
         reporter_name: r.reporter_name ?? '',
+        provider_name: r.provider_name ?? '',
+        provider_id: r.provider_id ?? '',
         request_id: requestIdNum,
         created_at: r.created_at ? new Date(r.created_at).toISOString() : '',
         ticket_id: (r.ticket_id ?? String(idNum)) as string,
