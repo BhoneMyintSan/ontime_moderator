@@ -240,7 +240,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             await tx.service_request.update({
               where: { id: requestReport.request_id },
               data: {
-                status_detail: "cancelled",
+                status_detail: "refunded",
                 activity: "inactive",
                 updated_at: new Date()
               }
