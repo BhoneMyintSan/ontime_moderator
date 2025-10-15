@@ -11,20 +11,24 @@ interface TicketData {
   created_at:string;
   ticket_id:string;
   status?: string;
+  refund_approved?: boolean;
 }
 
 export async function GET() {
   try {
-    // Use raw SQL query to get tickets with provider information
+    // Use raw SQL query to get tickets with provider information and refund status
     const rows = await prisma.$queryRaw`
       SELECT r.*,
              u1.full_name as reporter_name,
              u2.full_name as provider_name,
-             sr.provider_id
+             sr.provider_id,
+             sr.status_detail,
+             p.status as payment_status
       FROM request_report r
       JOIN "user" u1 ON u1.id = r.reporter_id
       JOIN service_request sr ON sr.id = r.request_id
       JOIN "user" u2 ON u2.id = sr.provider_id
+      LEFT JOIN payment p ON p.service_request_id = sr.id
       ORDER BY r.created_at DESC
     `;
 
@@ -39,6 +43,18 @@ export async function GET() {
         ? r.request_id
         : (typeof r.report_id === 'number' ? r.report_id : parseInt(r.report_id ?? r.request_id ?? '0', 10));
 
+      // Determine refund status based on payment status
+      let refund_approved: boolean | undefined = undefined;
+      if (r.payment_status) {
+        const paymentStatus = r.payment_status.toString().toLowerCase();
+        if (paymentStatus === 'refunded') {
+          refund_approved = true; // Refund was approved
+        } else if (paymentStatus === 'released') {
+          refund_approved = false; // Refund was denied
+        }
+        // If payment_status is 'holding' or 'initiated', refund_approved stays undefined (pending)
+      }
+
       return {
         id: idNum,
         reporter_id: r.reporter_id ?? '',
@@ -49,6 +65,7 @@ export async function GET() {
         created_at: r.created_at ? new Date(r.created_at).toISOString() : '',
         ticket_id: (r.ticket_id ?? String(idNum)) as string,
         status,
+        refund_approved,
       };
     });
 
