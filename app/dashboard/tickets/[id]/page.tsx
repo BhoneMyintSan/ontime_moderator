@@ -2,7 +2,16 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { Ticket, User, FileText, Calendar, Shield, DollarSign, Check, X } from "lucide-react";
+import {
+  Ticket,
+  User,
+  FileText,
+  Calendar,
+  Shield,
+  DollarSign,
+  Check,
+  X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TicketDetail {
@@ -80,8 +89,8 @@ export default function TicketDetailPage() {
     const newStatus = status === "resolved" ? "ongoing" : "resolved";
     try {
       const res = await fetch(`/api/tickets/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status: newStatus }),
       });
       if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
@@ -100,8 +109,15 @@ export default function TicketDetailPage() {
   const formatDateTime = (dateStr: string) => {
     const date = new Date(dateStr);
     return {
-      date: date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
-      time: date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
+      date: date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+      }),
+      time: date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
     };
   };
 
@@ -150,7 +166,9 @@ export default function TicketDetailPage() {
     return (
       <div className="min-h-screen bg-[#23233a] p-8 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-[#e0e0e0] text-lg mb-4">Issue ticket not found</div>
+          <div className="text-[#e0e0e0] text-lg mb-4">
+            Issue ticket not found
+          </div>
           <Button
             onClick={() => router.back()}
             size="lg"
@@ -186,14 +204,16 @@ export default function TicketDetailPage() {
           {/* Gradient Glow Effect */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
-          
+
           <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4">
               <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center border border-blue-500/30">
                 <Ticket className="w-7 h-7 sm:w-8 sm:h-8 text-blue-400" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold text-white">Issue Ticket #{ticket.id}</h1>
+                <h1 className="text-2xl sm:text-3xl font-bold text-white">
+                  Issue Ticket #{ticket.id}
+                </h1>
                 <p className="text-[#e0e0e0] text-sm sm:text-base mt-1">
                   Ticket ID: {ticket.ticket_id}
                 </p>
@@ -207,27 +227,66 @@ export default function TicketDetailPage() {
                   const newStatus = e.target.value;
                   setStatus(newStatus);
                   if (!id || Array.isArray(id)) return;
+
+                  // When resolving, send refund decision along with status update
+                  const requestBody: {
+                    status: string;
+                    refund_approved?: boolean;
+                  } = {
+                    status: newStatus,
+                  };
+
+                  // If resolving, include refund decision (approved or denied)
+                  if (newStatus === "resolved") {
+                    if (refundStatus === "approved") {
+                      requestBody.refund_approved = true;
+                    } else if (refundStatus === "denied") {
+                      requestBody.refund_approved = false;
+                    }
+                  }
+
                   fetch(`/api/tickets/${id}`, {
-                    method: 'PATCH',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ status: newStatus }),
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(requestBody),
                   })
-                    .then(res => res.json())
-                    .then(json => {
+                    .then((res) => res.json())
+                    .then((json) => {
                       if (json.status === "success" && ticket) {
                         setTicket({ ...ticket, status: newStatus });
+
+                        // Show appropriate message based on refund decision
+                        if (json.data?.refund_processed) {
+                          const decision = json.data.refund_decision;
+                          const amount = json.data.token_amount;
+                          if (decision === "approved") {
+                            alert(
+                              `Ticket resolved! Refund approved: ${amount} tokens returned to requester.`
+                            );
+                          } else if (decision === "denied") {
+                            alert(
+                              `Ticket resolved! Refund denied: ${amount} tokens released to provider.`
+                            );
+                          }
+                        }
                       }
                     })
-                    .catch(error => console.error("Failed to update ticket status:", error));
+                    .catch((error) =>
+                      console.error("Failed to update ticket status:", error)
+                    );
                 }}
                 className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 ${
-                  status === "resolved" 
-                    ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400" 
+                  status === "resolved"
+                    ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400"
                     : "bg-orange-500 hover:bg-orange-600 text-white shadow-lg shadow-orange-500/30 border-orange-400"
                 }`}
               >
-                <option value="ongoing" className="bg-[#1f1f33] text-white">Ongoing</option>
-                <option value="resolved" className="bg-[#1f1f33] text-white">Resolved</option>
+                <option value="ongoing" className="bg-[#1f1f33] text-white">
+                  Ongoing
+                </option>
+                <option value="resolved" className="bg-[#1f1f33] text-white">
+                  Resolved
+                </option>
               </select>
             </div>
           </div>
@@ -241,20 +300,28 @@ export default function TicketDetailPage() {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-cyan-500/20 flex items-center justify-center">
                 <User className="w-5 h-5 text-blue-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Reporter (Requester)</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Reporter (Requester)
+              </h2>
             </div>
             <div className="space-y-3">
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Name</p>
-                <p className="text-[#e0e0e0] font-medium">{ticket.reporter_name || 'Unknown'}</p>
+                <p className="text-[#e0e0e0] font-medium">
+                  {ticket.reporter_name || "Unknown"}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Reporter ID</p>
-                <p className="text-[#e0e0e0] font-mono text-sm">{ticket.reporter_id}</p>
+                <p className="text-[#e0e0e0] font-mono text-sm">
+                  {ticket.reporter_id}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Role</p>
-                <p className="text-[#e0e0e0]">Person who requested the service</p>
+                <p className="text-[#e0e0e0]">
+                  Person who requested the service
+                </p>
               </div>
               <button
                 className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -281,15 +348,21 @@ export default function TicketDetailPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Name</p>
-                <p className="text-[#e0e0e0] font-medium">{ticket.provider_name || 'Unknown'}</p>
+                <p className="text-[#e0e0e0] font-medium">
+                  {ticket.provider_name || "Unknown"}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Provider ID</p>
-                <p className="text-[#e0e0e0] font-mono text-sm">{ticket.provider_id}</p>
+                <p className="text-[#e0e0e0] font-mono text-sm">
+                  {ticket.provider_id}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Role</p>
-                <p className="text-[#e0e0e0]">Person who provided the service</p>
+                <p className="text-[#e0e0e0]">
+                  Person who provided the service
+                </p>
               </div>
               <button
                 className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -311,20 +384,28 @@ export default function TicketDetailPage() {
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-indigo-500/20 to-blue-500/20 flex items-center justify-center">
                 <FileText className="w-5 h-5 text-indigo-400" />
               </div>
-              <h2 className="text-lg font-semibold text-white">Service Request</h2>
+              <h2 className="text-lg font-semibold text-white">
+                Service Request
+              </h2>
             </div>
             <div className="space-y-3">
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Request ID</p>
-                <p className="text-[#e0e0e0] font-medium">#{ticket.request_id}</p>
+                <p className="text-[#e0e0e0] font-medium">
+                  #{ticket.request_id}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Listing ID</p>
-                <p className="text-[#e0e0e0] font-medium">#{ticket.listing_id}</p>
+                <p className="text-[#e0e0e0] font-medium">
+                  #{ticket.listing_id}
+                </p>
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Service Title</p>
-                <p className="text-[#e0e0e0] font-medium">{ticket.listing_title || 'Unknown'}</p>
+                <p className="text-[#e0e0e0] font-medium">
+                  {ticket.listing_title || "Unknown"}
+                </p>
               </div>
               <button
                 className="mt-2 bg-[#6366f1] hover:bg-[#4f46e5] px-4 py-2 rounded-lg text-white text-sm font-medium shadow-lg shadow-indigo-500/30 transition-all hover:scale-105 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
@@ -359,11 +440,13 @@ export default function TicketDetailPage() {
               </div>
               <div>
                 <p className="text-[#9ca3af] text-sm mb-1">Current Status</p>
-                <span className={`inline-block px-3 py-1 rounded-lg text-sm font-medium ${
-                  status === "resolved" 
-                    ? "bg-green-500/20 border border-green-500/50 text-green-300" 
-                    : "bg-orange-500/20 border border-orange-500/50 text-orange-300"
-                }`}>
+                <span
+                  className={`inline-block px-3 py-1 rounded-lg text-sm font-medium ${
+                    status === "resolved"
+                      ? "bg-green-500/20 border border-green-500/50 text-green-300"
+                      : "bg-orange-500/20 border border-orange-500/50 text-orange-300"
+                  }`}
+                >
                   {status === "resolved" ? "Resolved" : "Ongoing"}
                 </span>
               </div>
@@ -381,7 +464,9 @@ export default function TicketDetailPage() {
           </div>
           <div className="space-y-4">
             <div>
-              <p className="text-[#9ca3af] text-sm mb-3">Token Refund Decision</p>
+              <p className="text-[#9ca3af] text-sm mb-3">
+                Token Refund Decision
+              </p>
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
                 <div className="w-full sm:w-auto">
                   <select
@@ -389,33 +474,10 @@ export default function TicketDetailPage() {
                     onChange={(e) => {
                       const newRefundStatus = e.target.value;
                       setRefundStatus(newRefundStatus);
-                      // TODO: Connect to backend API to update refund status
-                      if (!id || Array.isArray(id)) return;
-                      
-                      // Placeholder for backend integration
-                      console.log('Updating refund status to:', newRefundStatus);
-                      
-                      /* Example backend call:
-                      fetch(`/api/tickets/${id}/refund`, {
-                        method: 'PATCH',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                          refund_approved: newRefundStatus === 'approved' ? true : 
-                                          newRefundStatus === 'denied' ? false : null 
-                        }),
-                      })
-                        .then(res => res.json())
-                        .then(json => {
-                          if (json.status === 'success' && ticket) {
-                            setTicket({
-                              ...ticket,
-                              refund_approved: newRefundStatus === 'approved' ? true : 
-                                              newRefundStatus === 'denied' ? false : undefined
-                            });
-                          }
-                        })
-                        .catch(error => console.error('Failed to update refund status:', error));
-                      */
+                      console.log("Refund status changed to:", newRefundStatus);
+                      console.log(
+                        "Note: Refund will be processed when ticket is marked as resolved"
+                      );
                     }}
                     className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 min-w-[200px] ${
                       refundStatus === "approved"
@@ -425,26 +487,41 @@ export default function TicketDetailPage() {
                         : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg shadow-yellow-500/30 border-yellow-400"
                     }`}
                   >
-                    <option value="pending" className="bg-[#1f1f33] text-white">Pending Review</option>
-                    <option value="approved" className="bg-[#1f1f33] text-white">Approve Refund</option>
-                    <option value="denied" className="bg-[#1f1f33] text-white">Deny Refund</option>
+                    <option value="pending" className="bg-[#1f1f33] text-white">
+                      Pending Review
+                    </option>
+                    <option
+                      value="approved"
+                      className="bg-[#1f1f33] text-white"
+                    >
+                      Approve Refund
+                    </option>
+                    <option value="denied" className="bg-[#1f1f33] text-white">
+                      Deny Refund
+                    </option>
                   </select>
                 </div>
                 <div className="flex items-center gap-2">
                   {refundStatus === "approved" ? (
                     <>
                       <Check className="w-5 h-5 text-green-400" />
-                      <p className="text-[#9ca3af] text-sm">Refund will be processed and tokens returned to reporter</p>
+                      <p className="text-[#9ca3af] text-sm">
+                        Refund will be processed and tokens returned to reporter
+                      </p>
                     </>
                   ) : refundStatus === "denied" ? (
                     <>
                       <X className="w-5 h-5 text-red-400" />
-                      <p className="text-[#9ca3af] text-sm">Refund request has been denied</p>
+                      <p className="text-[#9ca3af] text-sm">
+                        Refund request has been denied
+                      </p>
                     </>
                   ) : (
                     <>
                       <Shield className="w-5 h-5 text-yellow-400" />
-                      <p className="text-[#9ca3af] text-sm">Awaiting moderator decision</p>
+                      <p className="text-[#9ca3af] text-sm">
+                        Awaiting moderator decision
+                      </p>
                     </>
                   )}
                 </div>
@@ -452,9 +529,12 @@ export default function TicketDetailPage() {
             </div>
             <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
               <p className="text-[#b3b3c6] text-sm leading-relaxed">
-                <span className="font-semibold text-[#e0e0e0]">Note:</span> Use the dropdown above to approve or deny the refund request. 
-                Approved refunds will be processed and tokens returned to the reporter&apos;s account. 
-                This action can be changed until the ticket is closed.
+                <span className="font-semibold text-[#e0e0e0]">Note:</span> Use
+                the dropdown above to approve or deny the refund request. The
+                refund will be automatically processed when you mark the ticket
+                as &quot;Resolved&quot; (if refund is approved). Tokens will be
+                returned to the reporter&apos;s account and a transaction record
+                will be created.
               </p>
             </div>
           </div>

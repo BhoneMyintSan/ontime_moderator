@@ -262,6 +262,7 @@ enum service_request_status {
   completed
   cancelled
   expired
+  refunded
 }
 
 enum service_status {

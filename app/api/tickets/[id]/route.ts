@@ -3,6 +3,7 @@ import prisma from '../../../../lib/prisma';
 
 interface TicketUpdateData {
   status?: string;
+  refund_approved?: boolean;
 }
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
@@ -150,34 +151,291 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       );
     }
 
-    // Update the actual service_request, not the request_report
-    const updatedTicket = await prisma.service_request.update({
-      where: { id: requestReport.request_id },
-      data: { 
-        status_detail: dbStatus,
-        updated_at: new Date()
-      },
-      include: {
-        user_service_request_requester_idTouser: {
-          select: {
-            id: true,
-            full_name: true,
-          }
+    // Use transaction to update service_request, request_report, completion status, and handle refund
+    const result = await prisma.$transaction(async (tx) => {
+      // Update the actual service_request, not the request_report
+      const updatedTicket = await tx.service_request.update({
+        where: { id: requestReport.request_id },
+        data: { 
+          status_detail: dbStatus,
+          updated_at: new Date()
         },
-        user_service_request_provider_idTouser: {
-          select: {
-            id: true,
-            full_name: true,
+        include: {
+          user_service_request_requester_idTouser: {
+            select: {
+              id: true,
+              full_name: true,
+              token_balance: true,
+            }
+          },
+          user_service_request_provider_idTouser: {
+            select: {
+              id: true,
+              full_name: true,
+            }
+          },
+          payment: true,
+        }
+      });
+
+      // Also update the request_report status to match
+      await tx.request_report.update({
+        where: { id: ticketId },
+        data: { status: uiStatus }
+      });
+
+      let refundInfo = null;
+
+      // If status is resolved, update service_request_completion and handle refund decision
+      if (uiStatus === 'resolved') {
+        console.log("Setting requester_completed and provider_completed to true for request:", requestReport.request_id);
+        
+        // Get the completion record - it must exist
+        const existingCompletion = await tx.service_request_completion.findFirst({
+          where: { request_id: requestReport.request_id }
+        });
+
+        if (!existingCompletion) {
+          throw new Error(`Fatal error: service_request_completion record not found for request_id ${requestReport.request_id}`);
+        }
+
+        // Update the completion record
+        await tx.service_request_completion.update({
+          where: { id: existingCompletion.id },
+          data: {
+            requester_completed: true,
+            provider_completed: true,
+            is_active: false // Mark as inactive since issue is resolved
+          }
+        });
+
+        // Handle refund decision (approved or denied)
+        if (body.refund_approved === true || body.refund_approved === false) {
+          console.log(`Processing refund decision for ticket ${ticketId}: ${body.refund_approved ? 'APPROVED' : 'DENIED'}`);
+
+          // Find the payment record for this service request
+          const payment = updatedTicket.payment.find(p => p.service_request_id === requestReport.request_id);
+
+          if (!payment) {
+            throw new Error("Payment record not found for this service request");
+          }
+
+          // Check if already processed
+          if (payment.status === "refunded" || payment.status === "released") {
+            throw new Error(`Payment has already been ${payment.status}`);
+          }
+
+          const requester = updatedTicket.user_service_request_requester_idTouser;
+          const provider = updatedTicket.user_service_request_provider_idTouser;
+          const tokenAmount = payment.amount_tokens;
+
+          if (body.refund_approved === true) {
+            // REFUND APPROVED: Return tokens to requester
+            console.log(`Refunding ${tokenAmount} tokens to requester ${requester.id}`);
+
+            // 1. Update service_request status to 'cancelled' and activity to 'inactive'
+            await tx.service_request.update({
+              where: { id: requestReport.request_id },
+              data: {
+                status_detail: "cancelled",
+                activity: "inactive",
+                updated_at: new Date()
+              }
+            });
+
+            // 2. Update payment status to 'refunded'
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: {
+                status: "refunded",
+                updated_at: new Date()
+              }
+            });
+
+            // 3. Add tokens back to the requester's balance
+            const updatedRequester = await tx.user.update({
+              where: { id: requester.id },
+              data: {
+                token_balance: {
+                  increment: tokenAmount
+                }
+              }
+            });
+
+            // 4. Create a transaction record for the refund
+            await tx.transaction.create({
+              data: {
+                user_id: requester.id,
+                type: "refund",
+                amount: tokenAmount,
+                created_at: new Date()
+              }
+            });
+
+            // 5. Create event for the refund
+            const event = await tx.event.create({
+              data: {
+                target_id: requestReport.request_id,
+                type: "request",
+                description: "refund_approved",
+                created_at: new Date()
+              }
+            });
+
+            // 6. Create notifications for both users
+            const requesterMessage = `Your refund of ${tokenAmount} tokens has been approved and processed for ticket #${ticketId}`;
+            const providerMessage = `Refund of ${tokenAmount} tokens was approved for ticket #${ticketId}. Payment has been returned to the requester.`;
+            
+            await tx.notification.create({
+              data: {
+                message: requesterMessage,
+                recipient_user_id: requester.id,
+                action_user_id: null,
+                event_id: event.id,
+                is_read: false
+              }
+            });
+
+            await tx.notification.create({
+              data: {
+                message: providerMessage,
+                recipient_user_id: provider.id,
+                action_user_id: null,
+                event_id: event.id,
+                is_read: false
+              }
+            });
+
+            refundInfo = {
+              decision: 'approved',
+              token_amount: tokenAmount,
+              requester_new_balance: updatedRequester.token_balance,
+              requester_id: requester.id,
+              requester_message: requesterMessage,
+              provider_id: provider.id,
+              provider_message: providerMessage
+            };
+
+          } else {
+            // REFUND DENIED: Release tokens to provider
+            console.log(`Refund denied. Releasing ${tokenAmount} tokens to provider ${provider.id}`);
+
+            // 1. Update service_request status to 'completed' and activity to 'inactive'
+            await tx.service_request.update({
+              where: { id: requestReport.request_id },
+              data: {
+                status_detail: "completed",
+                activity: "inactive",
+                updated_at: new Date()
+              }
+            });
+
+            // 2. Update payment status to 'released'
+            await tx.payment.update({
+              where: { id: payment.id },
+              data: {
+                status: "released",
+                updated_at: new Date()
+              }
+            });
+
+            // 3. Add tokens to the provider's balance
+            const updatedProvider = await tx.user.update({
+              where: { id: provider.id },
+              data: {
+                token_balance: {
+                  increment: tokenAmount
+                }
+              }
+            });
+
+            // 4. Create a transaction record for the payment release
+            await tx.transaction.create({
+              data: {
+                user_id: provider.id,
+                type: "payment",
+                amount: tokenAmount,
+                created_at: new Date()
+              }
+            });
+
+            // 5. Create event for the refund denial
+            const event = await tx.event.create({
+              data: {
+                target_id: requestReport.request_id,
+                type: "request",
+                description: "refund_denied",
+                created_at: new Date()
+              }
+            });
+
+            // 6. Create notifications for both users
+            const requesterMessage = `Your refund request for ticket #${ticketId} has been denied. Payment of ${tokenAmount} tokens has been released to the provider.`;
+            const providerMessage = `Refund request was denied for ticket #${ticketId}. You have received ${tokenAmount} tokens.`;
+            
+            await tx.notification.create({
+              data: {
+                message: requesterMessage,
+                recipient_user_id: requester.id,
+                action_user_id: null,
+                event_id: event.id,
+                is_read: false
+              }
+            });
+
+            await tx.notification.create({
+              data: {
+                message: providerMessage,
+                recipient_user_id: provider.id,
+                action_user_id: null,
+                event_id: event.id,
+                is_read: false
+              }
+            });
+
+            refundInfo = {
+              decision: 'denied',
+              token_amount: tokenAmount,
+              provider_new_balance: updatedProvider.token_balance,
+              requester_id: requester.id,
+              requester_message: requesterMessage,
+              provider_id: provider.id,
+              provider_message: providerMessage
+            };
           }
         }
       }
+
+      return { updatedTicket, refundInfo };
     });
 
-    // Also update the request_report status to match
-    await prisma.request_report.update({
-      where: { id: ticketId },
-      data: { status: uiStatus }
-    });
+    // Emit Pusher notifications for both users if refund was processed
+    if (result.refundInfo) {
+      try {
+        const { emit } = await import("@/lib/pusher");
+        
+        // Notify requester
+        await emit(`user-${result.refundInfo.requester_id}`, "new-notification", {
+          message: result.refundInfo.requester_message,
+          event_type: result.refundInfo.decision === 'approved' ? "refund_approved" : "refund_denied",
+          ticket_id: ticketId,
+          token_amount: result.refundInfo.token_amount,
+        });
+        
+        // Notify provider
+        await emit(`user-${result.refundInfo.provider_id}`, "new-notification", {
+          message: result.refundInfo.provider_message,
+          event_type: result.refundInfo.decision === 'approved' ? "refund_approved" : "refund_denied",
+          ticket_id: ticketId,
+          token_amount: result.refundInfo.token_amount,
+        });
+        
+        console.log("Pusher notifications sent to both users for refund decision");
+      } catch (pusherError) {
+        console.error("Failed to send Pusher notifications:", pusherError);
+        // Don't fail the request if Pusher fails
+      }
+    }
 
     // Re-fetch the issue to build consistent response shape
     const updatedIssue = await prisma.request_report.findUnique({
@@ -218,7 +476,7 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       updatedListingTitle = listing?.title ?? '';
     }
 
-    const mappedStatus = uiStatus; // Already mapped and saved; UI expects 'resolved' | 'ongoing'
+    const mappedStatus = uiStatus;
 
     const responseData = {
       id: updatedIssue.id,
@@ -232,11 +490,26 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       provider_name: updatedIssue.service_request?.user_service_request_provider_idTouser?.full_name ?? '',
       created_at: updatedIssue.created_at ? new Date(updatedIssue.created_at).toISOString() : '',
       status: mappedStatus,
+      ...(result.refundInfo && {
+        refund_processed: true,
+        refund_decision: result.refundInfo.decision,
+        token_amount: result.refundInfo.token_amount,
+        ...(result.refundInfo.decision === 'approved' && {
+          requester_new_balance: result.refundInfo.requester_new_balance
+        }),
+        ...(result.refundInfo.decision === 'denied' && {
+          provider_new_balance: result.refundInfo.provider_new_balance
+        })
+      })
     };
+
+    const successMessage = result.refundInfo 
+      ? `Ticket resolved. Refund ${result.refundInfo.decision}: ${result.refundInfo.token_amount} tokens ${result.refundInfo.decision === 'approved' ? 'returned to requester' : 'released to provider'}`
+      : 'Ticket updated successfully';
 
     return NextResponse.json({
       status: 'success',
-      message: 'Ticket updated successfully',
+      message: successMessage,
       data: responseData,
     });
   } catch (error) {
