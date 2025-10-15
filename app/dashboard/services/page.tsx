@@ -119,10 +119,10 @@ export default function ServicesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#23233a] p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="min-h-screen bg-[#23233a] p-3 sm:p-4 lg:p-6">
+      <div className="max-w-5xl mx-auto space-y-4">
         {/* Header Card with Gradient */}
-        <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 sm:p-8 border border-[#29294d] overflow-hidden">
+        <div className="relative bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 sm:p-6 border border-[#29294d] overflow-hidden">
           {/* Gradient Glow Effect */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl"></div>
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl"></div>
@@ -160,72 +160,72 @@ export default function ServicesPage() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6 gap-4">
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Total Services</span>
-              <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Wrench className="w-5 h-5 text-blue-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Total Services</span>
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Wrench className="w-4 h-4 text-blue-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-white">{totalServices}</div>
+            <div className="text-3xl font-bold text-white">{totalServices}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">All service listings</p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Active</span>
-              <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
-                <CheckCircle className="w-5 h-5 text-green-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Active</span>
+              <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
+                <CheckCircle className="w-4 h-4 text-green-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-green-400">{activeServices}</div>
+            <div className="text-3xl font-bold text-green-400">{activeServices}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">
               {totalServices > 0 ? ((activeServices / totalServices) * 100).toFixed(1) : 0}% of total
             </p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Suspended</span>
-              <div className="w-10 h-10 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <Clock className="w-5 h-5 text-red-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Suspended</span>
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <Clock className="w-4 h-4 text-red-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-red-400">{suspendedServices}</div>
+            <div className="text-3xl font-bold text-red-400">{suspendedServices}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">Requires attention</p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Total Warnings</span>
-              <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
-                <AlertTriangle className="w-5 h-5 text-yellow-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Total Warnings</span>
+              <div className="w-8 h-8 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+                <AlertTriangle className="w-4 h-4 text-yellow-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-yellow-400">{totalWarnings}</div>
+            <div className="text-3xl font-bold text-yellow-400">{totalWarnings}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">Across all services</p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Total Reports</span>
-              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-purple-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Total Reports</span>
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                <Users className="w-4 h-4 text-purple-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-purple-400">{totalReports}</div>
+            <div className="text-3xl font-bold text-purple-400">{totalReports}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">User reports filed</p>
           </div>
 
-          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-6 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
+          <div className="bg-gradient-to-br from-[#1f1f33] to-[#252540] rounded-2xl p-4 border border-[#29294d] hover:scale-[1.02] transition-all duration-300 shadow-xl">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-[#9ca3af] text-sm font-medium uppercase tracking-wide">Issue Tickets</span>
-              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Ticket className="w-5 h-5 text-orange-400" />
+              <span className="text-[#9ca3af] text-xs font-medium uppercase tracking-wide">Issue Tickets</span>
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Ticket className="w-4 h-4 text-orange-400" />
               </div>
             </div>
-            <div className="text-4xl font-bold text-orange-400">{totalTickets}</div>
+            <div className="text-3xl font-bold text-orange-400">{totalTickets}</div>
             <p className="text-xs text-[#e0e0e0] mt-1">Service issues</p>
           </div>
         </div>

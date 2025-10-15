@@ -1,18 +1,18 @@
 "use client";
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { ServiceListing } from "@/lib/types";
 import SearchAndFilter from "../SearchAndFilter";
 import Pagination from "../Pagination";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { AlertTriangle, Clock, Eye, Users, Ticket } from "lucide-react";
-import Link from "next/link";
+import { AlertTriangle, Clock, Users, Ticket } from "lucide-react";
 
 interface ServiceTableProps {
   services: ServiceListing[];
 }
 
 const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
@@ -80,14 +80,14 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Reports</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Tickets</th>
                 <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Posted</th>
-                <th className="text-left py-4 px-6 text-[#e0e0e0] font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody>
               {paginatedServices.map((service, index) => (
                 <tr 
                   key={service.id} 
-                  className={`border-b border-[#29294d] hover:bg-[#252540] transition-colors ${
+                  onClick={() => router.push(`/dashboard/services/${service.id}`)}
+                  className={`border-b border-[#29294d] hover:bg-[#252540] transition-colors cursor-pointer ${
                     index % 2 === 0 ? 'bg-[#1f1f33]' : 'bg-[#232340]'
                   }`}
                 >
@@ -149,14 +149,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                       </span>
                     </div>
                   </td>
-                  <td className="py-4 px-6">
-                    <Link href={`/dashboard/services/${service.id}`}>
-                      <Button variant="outline" size="sm" className="text-black border-[#29294d] hover:bg-[#bdbddb]">
-                        <Eye className="w-4 h-4 mr-2" />
-                        View Details
-                      </Button>
-                    </Link>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -167,7 +159,11 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
       {/* Mobile Cards */}
       <div className="md:hidden space-y-4">
         {paginatedServices.map((service) => (
-          <div key={service.id} className="bg-[#1f1f33] rounded-2xl border border-[#29294d] p-4">
+          <div 
+            key={service.id} 
+            onClick={() => router.push(`/dashboard/services/${service.id}`)}
+            className="bg-[#1f1f33] rounded-2xl border border-[#29294d] p-4 cursor-pointer hover:bg-[#252540] transition-colors"
+          >
             <div className="flex items-start justify-between mb-3">
               <div className="flex-1">
                 <h3 className="font-semibold text-white mb-1">{service.title}</h3>
@@ -224,15 +220,6 @@ const ServiceTable: React.FC<ServiceTableProps> = ({ services }) => {
                   {new Date(service.posted_at).toLocaleDateString()}
                 </span>
               </div>
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-[#29294d]">
-              <Link href={`/dashboard/services/${service.id}`}>
-                <Button variant="outline" size="sm" className="w-full text-white border-[#29294d] hover:bg-[#29294d]">
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </Button>
-              </Link>
             </div>
           </div>
         ))}

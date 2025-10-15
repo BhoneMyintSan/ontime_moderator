@@ -184,12 +184,12 @@ const Navbar = () => {
   };
 
   return (
-    <div className="w-full flex flex-row items-center justify-end gap-4 mb-6 relative">
+    <div className="w-full flex flex-row items-center justify-end gap-4 relative">
       <div className="flex items-center gap-4 flex-shrink-0">
         <form
           ref={formRef}
           onSubmit={handleSearch}
-          className="relative w-full max-w-md"
+          className="relative w-full max-w-xs sm:max-w-sm lg:max-w-md"
           onBlur={() => {
             const formEl = formRef.current;
             setTimeout(() => {
@@ -212,10 +212,10 @@ const Navbar = () => {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search users, tickets, reports..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="bg-[#1f1f33] text-[#e0e0e0] placeholder:text-[#6d6d85] pl-10 pr-10 py-2.5 rounded-xl w-full border border-[#29294d] focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all duration-300"
+              className="bg-[#1f1f33] text-[#e0e0e0] placeholder:text-[#6d6d85] pl-10 pr-10 py-2.5 rounded-xl w-full min-w-0 border border-[#29294d] focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 text-sm transition-all duration-300"
               onFocus={() => {
                 if (searchQuery.trim()) {
                   if (!allDataLoaded) loadAllData();
@@ -288,7 +288,7 @@ const Navbar = () => {
         </form>
         
         {/* User Profile Dropdown */}
-        <div className="relative">
+        <div className="relative flex-shrink-0">
           <button
             className="relative w-10 h-10 rounded-xl border-2 border-[#29294d] cursor-pointer overflow-hidden bg-gradient-to-br from-[#252540] to-[#1f1f33] flex items-center justify-center hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/20 transition-all duration-300"
             onClick={() => setShowDropdown(!showDropdown)}
