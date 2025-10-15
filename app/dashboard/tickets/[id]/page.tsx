@@ -27,6 +27,11 @@ interface TicketDetail {
   created_at: string;
   status: string;
   refund_approved?: boolean; // true = refund approved, false = refund denied, undefined = pending
+  refund_processed?: boolean;
+  refund_decision?: "approved" | "denied";
+  token_amount?: number;
+  requester_new_balance?: number;
+  provider_new_balance?: number;
 }
 
 export default function TicketDetailPage() {
@@ -253,7 +258,20 @@ export default function TicketDetailPage() {
                     .then((res) => res.json())
                     .then((json) => {
                       if (json.status === "success" && ticket) {
-                        setTicket({ ...ticket, status: newStatus });
+                        // Update ticket with all response data
+                        setTicket({
+                          ...ticket,
+                          status: newStatus,
+                          ...(json.data?.refund_processed && {
+                            refund_processed: json.data.refund_processed,
+                            refund_decision: json.data.refund_decision,
+                            token_amount: json.data.token_amount,
+                            requester_new_balance:
+                              json.data.requester_new_balance,
+                            provider_new_balance:
+                              json.data.provider_new_balance,
+                          }),
+                        });
 
                         // Show appropriate message based on refund decision
                         if (json.data?.refund_processed) {
@@ -462,6 +480,62 @@ export default function TicketDetailPage() {
             </div>
             <h2 className="text-lg font-semibold text-white">Refund Status</h2>
           </div>
+
+          {/* Show resolution result if ticket is resolved */}
+          {ticket.refund_processed && status === "resolved" && (
+            <div
+              className={`mb-6 rounded-lg p-4 border-2 ${
+                ticket.refund_decision === "approved"
+                  ? "bg-green-500/10 border-green-500/50"
+                  : "bg-red-500/10 border-red-500/50"
+              }`}
+            >
+              <div className="flex items-start gap-3">
+                {ticket.refund_decision === "approved" ? (
+                  <Check className="w-6 h-6 text-green-400 mt-0.5" />
+                ) : (
+                  <X className="w-6 h-6 text-red-400 mt-0.5" />
+                )}
+                <div className="flex-1">
+                  <h3
+                    className={`font-semibold mb-2 ${
+                      ticket.refund_decision === "approved"
+                        ? "text-green-300"
+                        : "text-red-300"
+                    }`}
+                  >
+                    {ticket.refund_decision === "approved"
+                      ? "✓ Refund Approved & Processed"
+                      : "✗ Refund Denied"}
+                  </h3>
+                  <p className="text-[#e0e0e0] text-sm mb-3">
+                    {ticket.refund_decision === "approved"
+                      ? `${ticket.token_amount} tokens have been refunded to the reporter (requester).`
+                      : `${ticket.token_amount} tokens have been released to the service provider.`}
+                  </p>
+                  {ticket.refund_decision === "approved" &&
+                    ticket.requester_new_balance !== undefined && (
+                      <p className="text-[#9ca3af] text-sm">
+                        Requester&apos;s new balance:{" "}
+                        <span className="text-green-400 font-semibold">
+                          {ticket.requester_new_balance} tokens
+                        </span>
+                      </p>
+                    )}
+                  {ticket.refund_decision === "denied" &&
+                    ticket.provider_new_balance !== undefined && (
+                      <p className="text-[#9ca3af] text-sm">
+                        Provider&apos;s new balance:{" "}
+                        <span className="text-emerald-400 font-semibold">
+                          {ticket.provider_new_balance} tokens
+                        </span>
+                      </p>
+                    )}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-4">
             <div>
               <p className="text-[#9ca3af] text-sm mb-3">
@@ -479,7 +553,12 @@ export default function TicketDetailPage() {
                         "Note: Refund will be processed when ticket is marked as resolved"
                       );
                     }}
+                    disabled={status === "resolved"}
                     className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 min-w-[200px] ${
+                      status === "resolved"
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    } ${
                       refundStatus === "approved"
                         ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400"
                         : refundStatus === "denied"

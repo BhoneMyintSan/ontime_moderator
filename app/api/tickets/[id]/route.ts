@@ -138,10 +138,13 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
       );
     }
 
-    // First, get the request_report to find the actual service_request ID
+    // First, get the request_report to find the actual service_request ID and ticket_id
     const requestReport = await prisma.request_report.findUnique({
       where: { id: ticketId },
-      select: { request_id: true }
+      select: { 
+        request_id: true,
+        ticket_id: true 
+      }
     });
 
     if (!requestReport) {
@@ -283,8 +286,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             });
 
             // 6. Create notifications for both users
-            const requesterMessage = `Your refund of ${tokenAmount} tokens has been approved and processed for ticket #${ticketId}`;
-            const providerMessage = `Refund of ${tokenAmount} tokens was approved for ticket #${ticketId}. Payment has been returned to the requester.`;
+            const requesterMessage = `Your refund of ${tokenAmount} tokens has been approved and processed for ticket #${requestReport.ticket_id}`;
+            const providerMessage = `Refund of ${tokenAmount} tokens was approved for ticket #${requestReport.ticket_id}. Payment has been returned to the requester.`;
             
             await tx.notification.create({
               data: {
@@ -370,8 +373,8 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
             });
 
             // 6. Create notifications for both users
-            const requesterMessage = `Your refund request for ticket #${ticketId} has been denied. Payment of ${tokenAmount} tokens has been released to the provider.`;
-            const providerMessage = `Refund request was denied for ticket #${ticketId}. You have received ${tokenAmount} tokens.`;
+            const requesterMessage = `Your refund request for ticket #${requestReport.ticket_id} has been denied. Payment of ${tokenAmount} tokens has been released to the provider.`;
+            const providerMessage = `Refund request was denied for ticket #${requestReport.ticket_id}. You have received ${tokenAmount} tokens.`;
             
             await tx.notification.create({
               data: {
