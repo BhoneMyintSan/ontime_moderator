@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import SearchAndFilter from "../SearchAndFilter";
+import { Check, X } from "lucide-react";
 
 interface Ticket {
   id: number;
@@ -12,6 +13,7 @@ interface Ticket {
   created_at: string; // ISO string
   ticket_id: string;
   status?: string; // "resolved" | "ongoing" | undefined
+  refund_approved?: boolean; // true = refund approved, false = refund denied, undefined = pending
 }
 
 interface TicketTableProps {
@@ -65,12 +67,13 @@ const TicketTable: React.FC<TicketTableProps> = ({
       <div className="bg-[#23233a] rounded-2xl shadow p-0 overflow-x-auto">
         <table className="hidden md:table min-w-[800px] w-full table-fixed">
           <colgroup>
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "20%" }} />
-            <col style={{ width: "20%" }} />
-            <col style={{ width: "15%" }} />
-            <col style={{ width: "15%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "12%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "18%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "13%" }} />
+            <col style={{ width: "14%" }} />
           </colgroup>
           <thead>
             <tr className="text-[#b3b3c6] text-left text-lg">
@@ -79,6 +82,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
               <th className="py-4 px-3 sm:px-6 font-semibold">Reporter</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Provider</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Created</th>
+              <th className="py-4 px-3 sm:px-6 font-semibold">Refund</th>
               <th className="py-4 px-3 sm:px-6 font-semibold">Status</th>
             </tr>
           </thead>
@@ -95,6 +99,25 @@ const TicketTable: React.FC<TicketTableProps> = ({
                 <td className="py-3 px-3 sm:px-6">{t.provider_name}</td>
                 <td className="py-3 px-3 sm:px-6">
                   {new Date(t.created_at).toISOString().split("T")[0]}
+                </td>
+                <td className="py-3 px-3 sm:px-6">
+                  <div className="flex items-center justify-center">
+                    {t.refund_approved === true ? (
+                      <div className="flex items-center gap-1 text-green-400">
+                        <Check className="w-5 h-5" />
+                        <span className="text-sm font-medium">Yes</span>
+                      </div>
+                    ) : t.refund_approved === false ? (
+                      <div className="flex items-center gap-1 text-red-400">
+                        <X className="w-5 h-5" />
+                        <span className="text-sm font-medium">No</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center justify-center">
+                        <span className="text-[#b3b3c6] text-sm font-medium">Pending</span>
+                      </div>
+                    )}
+                  </div>
                 </td>
                 <td className="py-3 px-3 sm:px-6">
                   <button
@@ -118,7 +141,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
             ))}
             {filteredTickets.length === 0 && (
               <tr>
-                <td colSpan={6} className="text-center py-8 text-[#b3b3c6]">
+                <td colSpan={7} className="text-center py-8 text-[#b3b3c6]">
                   {searchQuery
                     ? "No tickets match your search criteria."
                     : "No tickets found."}
@@ -148,6 +171,22 @@ const TicketTable: React.FC<TicketTableProps> = ({
               </div>
               <div><span className="text-[#8b8ba3]">Reporter:</span> {t.reporter_name}</div>
               <div><span className="text-[#8b8ba3]">Provider:</span> {t.provider_name}</div>
+              <div className="flex items-center gap-2">
+                <span className="text-[#8b8ba3]">Refund:</span>
+                {t.refund_approved === true ? (
+                  <div className="flex items-center gap-1 text-green-400">
+                    <Check className="w-4 h-4" />
+                    <span className="text-xs font-medium">Approved</span>
+                  </div>
+                ) : t.refund_approved === false ? (
+                  <div className="flex items-center gap-1 text-red-400">
+                    <X className="w-4 h-4" />
+                    <span className="text-xs font-medium">Denied</span>
+                  </div>
+                ) : (
+                  <span className="text-xs font-medium">Pending</span>
+                )}
+              </div>
             </div>
           </div>
         ))}

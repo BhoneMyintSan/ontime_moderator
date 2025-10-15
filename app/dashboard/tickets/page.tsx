@@ -13,6 +13,7 @@ interface IssueTicket {
   created_at: string;
   ticket_id: string;
   status?: string;
+  refund_approved?: boolean; // true = refund approved, false = refund denied, undefined = pending
 }
 
 interface ApiResponse<T> {

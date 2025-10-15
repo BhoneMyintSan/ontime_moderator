@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
-import { Ticket, User, FileText, Calendar, Shield } from "lucide-react";
+import { Ticket, User, FileText, Calendar, Shield, DollarSign, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TicketDetail {
@@ -17,6 +17,7 @@ interface TicketDetail {
   provider_name: string;
   created_at: string;
   status: string;
+  refund_approved?: boolean; // true = refund approved, false = refund denied, undefined = pending
 }
 
 export default function TicketDetailPage() {
@@ -26,6 +27,7 @@ export default function TicketDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [status, setStatus] = useState<string>("");
+  const [refundStatus, setRefundStatus] = useState<string>("pending");
 
   const fetchTicket = useCallback(async () => {
     // Ensure id is a string and exists
@@ -49,6 +51,14 @@ export default function TicketDetailPage() {
       if (json.status === "success") {
         setTicket(json.data);
         setStatus(json.data.status || "ongoing");
+        // Set initial refund status based on ticket data
+        if (json.data.refund_approved === true) {
+          setRefundStatus("approved");
+        } else if (json.data.refund_approved === false) {
+          setRefundStatus("denied");
+        } else {
+          setRefundStatus("pending");
+        }
       } else {
         setError(json.message || "Failed to load ticket");
       }
@@ -357,6 +367,95 @@ export default function TicketDetailPage() {
                   {status === "resolved" ? "Resolved" : "Ongoing"}
                 </span>
               </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Refund Status Section */}
+        <div className="bg-[#1f1f33] rounded-2xl p-6 border border-[#29294d] hover:border-[#383862] transition-all">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 flex items-center justify-center">
+              <DollarSign className="w-5 h-5 text-emerald-400" />
+            </div>
+            <h2 className="text-lg font-semibold text-white">Refund Status</h2>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <p className="text-[#9ca3af] text-sm mb-3">Token Refund Decision</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                <div className="w-full sm:w-auto">
+                  <select
+                    value={refundStatus}
+                    onChange={(e) => {
+                      const newRefundStatus = e.target.value;
+                      setRefundStatus(newRefundStatus);
+                      // TODO: Connect to backend API to update refund status
+                      if (!id || Array.isArray(id)) return;
+                      
+                      // Placeholder for backend integration
+                      console.log('Updating refund status to:', newRefundStatus);
+                      
+                      /* Example backend call:
+                      fetch(`/api/tickets/${id}/refund`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ 
+                          refund_approved: newRefundStatus === 'approved' ? true : 
+                                          newRefundStatus === 'denied' ? false : null 
+                        }),
+                      })
+                        .then(res => res.json())
+                        .then(json => {
+                          if (json.status === 'success' && ticket) {
+                            setTicket({
+                              ...ticket,
+                              refund_approved: newRefundStatus === 'approved' ? true : 
+                                              newRefundStatus === 'denied' ? false : undefined
+                            });
+                          }
+                        })
+                        .catch(error => console.error('Failed to update refund status:', error));
+                      */
+                    }}
+                    className={`px-6 py-2.5 rounded-lg font-semibold text-sm transition-all cursor-pointer border-2 min-w-[200px] ${
+                      refundStatus === "approved"
+                        ? "bg-green-500 hover:bg-green-600 text-white shadow-lg shadow-green-500/30 border-green-400"
+                        : refundStatus === "denied"
+                        ? "bg-red-500 hover:bg-red-600 text-white shadow-lg shadow-red-500/30 border-red-400"
+                        : "bg-yellow-500 hover:bg-yellow-600 text-white shadow-lg shadow-yellow-500/30 border-yellow-400"
+                    }`}
+                  >
+                    <option value="pending" className="bg-[#1f1f33] text-white">Pending Review</option>
+                    <option value="approved" className="bg-[#1f1f33] text-white">Approve Refund</option>
+                    <option value="denied" className="bg-[#1f1f33] text-white">Deny Refund</option>
+                  </select>
+                </div>
+                <div className="flex items-center gap-2">
+                  {refundStatus === "approved" ? (
+                    <>
+                      <Check className="w-5 h-5 text-green-400" />
+                      <p className="text-[#9ca3af] text-sm">Refund will be processed and tokens returned to reporter</p>
+                    </>
+                  ) : refundStatus === "denied" ? (
+                    <>
+                      <X className="w-5 h-5 text-red-400" />
+                      <p className="text-[#9ca3af] text-sm">Refund request has been denied</p>
+                    </>
+                  ) : (
+                    <>
+                      <Shield className="w-5 h-5 text-yellow-400" />
+                      <p className="text-[#9ca3af] text-sm">Awaiting moderator decision</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+            <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
+              <p className="text-[#b3b3c6] text-sm leading-relaxed">
+                <span className="font-semibold text-[#e0e0e0]">Note:</span> Use the dropdown above to approve or deny the refund request. 
+                Approved refunds will be processed and tokens returned to the reporter&apos;s account. 
+                This action can be changed until the ticket is closed.
+              </p>
             </div>
           </div>
         </div>
