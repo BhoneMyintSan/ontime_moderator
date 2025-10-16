@@ -606,16 +606,6 @@ export default function TicketDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="bg-[#252540] rounded-lg p-4 border border-[#29294d]">
-              <p className="text-[#b3b3c6] text-sm leading-relaxed">
-                <span className="font-semibold text-[#e0e0e0]">Note:</span> Use
-                the dropdown above to approve or deny the refund request. The
-                refund will be automatically processed when you mark the ticket
-                as &quot;Resolved&quot; (if refund is approved). Tokens will be
-                returned to the reporter&apos;s account and a transaction record
-                will be created.
-              </p>
-            </div>
           </div>
         </div>
 
